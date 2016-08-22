@@ -4,12 +4,9 @@ require 'json'
 
 peer_db_file='peers.sqlite3'
 peer_neighbors_table='peer_neighbors_raw'
+peer_state_table='peer_state'
 peer_db=SQLite3::Database.new(peer_db_file)
-raw_log_txt='c:\Users\Serge\Downloads\candy2.txt\candy.small.txt'
-#raw_log_txt='c:\Users\Serge\Downloads\candy2.txt\candy2.txt'
-raw_log_json=IO.read(raw_log_txt)
 
-raw_log_data=JSON.parse(raw_log_json)["Logs"]
 cnt=0
 raw_log_data.each do |peer|
 	cnt+=1
