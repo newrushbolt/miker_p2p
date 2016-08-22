@@ -1,0 +1,3 @@
+miker_p2p>sqlite3 peers.sqlite3 -header -column ".schema"
+CREATE TABLE peer_state(wertc_id TEXT NOT NULL UNIQUE PRIMARY KEY, ip TEXT NOT NULL, last_online INTEGER, network TEXT, netname TEXT,asn INTEGER,country TEXT, city TEXT);
+CREATE TABLE peer_neighbors_raw(webrtc_id text NOT NULL,neighbor_webrtc_id text NOT NULL,neighbor_w_ping integer,neighbor_w_rate integer,neighbor_bytes integer,neighbor_last_update integer NOT NULL,neighbor_errors integer,neighbor_last_error integer, UNIQUE (webrtc_id, neighbor_webrtc_id,neighbor_last_update) ON CONFLICT REPLACE);

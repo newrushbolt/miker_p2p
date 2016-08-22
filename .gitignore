@@ -1,3 +1,7 @@
+#SQLite database
+*.sqlite
+*.sqlite3
+
 # Windows image file caches
 Thumbs.db
 ehthumbs.db
