@@ -44,8 +44,8 @@ peer_db_file='peers.sqlite3'
 peer_state_table='peer_state'
 peer_db=SQLite3::Database.new(peer_db_file)
 
-#raw_log_txt='c:\Users\Serge\Downloads\candy2.txt\candy.small.txt'
-raw_log_txt='c:\Users\Serge\Downloads\candy2.txt\candy2.txt'
+raw_log_txt='c:\Users\Serge\Downloads\candy2.txt\candy.small.txt'
+#raw_log_txt='c:\Users\Serge\Downloads\candy2.txt\candy2.txt'
 raw_log_json=IO.read(raw_log_txt)
 
 raw_log_data=JSON.parse(raw_log_json)["Logs"]
@@ -57,13 +57,13 @@ raw_log_data.each do |peer|
 	# puts peer["me"]["id"]
 	# puts peer["ip"]
 	# puts 'Requesting DB...'
-	req="select * from #{peer_state_table} where wertc_id = \"#{peer["me"]["id"]}\""
+	req="select * from #{peer_state_table} where webrtc_id = \"#{peer["me"]["id"]}\""
 	# puts req
 	res=peer_db.execute(req)
 	# puts ! res.any? ? "Nothing found" : res
 	if res.any?
 		begin
-			req="update #{peer_state_table} set last_online = \"#{peer["timestamp"]}\" where wertc_id= \"#{peer["me"]["id"]}\";"
+			req="update #{peer_state_table} set last_online = \"#{peer["timestamp"]}\" where webrtc_id= \"#{peer["me"]["id"]}\";"
 			res=peer_db.execute(req)	
 	    rescue  => e
 	        puts "Error in DB update for #{peer["ip"]}"
