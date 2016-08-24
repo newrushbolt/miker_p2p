@@ -5,7 +5,8 @@ require 'json'
 peer_db_file='peers.sqlite3'
 peer_neighbors_table='peer_neighbors_raw'
 peer_db=SQLite3::Database.new(peer_db_file)
-raw_log_txt='c:\Users\Serge\Downloads\candy2.txt\candy.small.txt'
+raw_log_txt='data/raw_log'
+#raw_log_txt='c:\Users\Serge\Downloads\candy2.txt\candy.small.txt'
 #raw_log_txt='c:\Users\Serge\Downloads\candy2.txt\candy2.txt'
 raw_log_json=IO.read(raw_log_txt)
 
