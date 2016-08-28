@@ -37,4 +37,6 @@ else
 	puts JSON.generate({:error => "Cannot get peers"})
 end
 
+#test_commit_record
+
 
