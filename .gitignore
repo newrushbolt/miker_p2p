@@ -2,6 +2,11 @@
 *.sqlite
 *.sqlite3
 data/*
+data\*
+
+#Log files
+log/*
+log\*
 
 # Windows image file caches
 Thumbs.db
