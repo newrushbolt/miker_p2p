@@ -1,4 +1,6 @@
 db.createCollection("log")
-db.createCollection("raw_peers",{ capped : true, size : 5242880})
+db.log.createIndex({timestamp:-1})
+db.log.createIndex({webrtc_id:1})
+db.createCollection("raw_peers",{ capped : "true", size : 5242880})
 db.raw_peers.createIndex({webrtc_id:1})
 db.raw_peers.createIndex({unchecked:1})

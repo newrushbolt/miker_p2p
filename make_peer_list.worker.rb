@@ -9,9 +9,17 @@ $peer_db_file='peers.sqlite3'
 $peer_state_table='peer_state'
 $peer_db=SQLite3::Database.new($peer_db_file)
 
+begin
+	req="select count(webrtc_id) from #{$peer_state_table};"
+	res=$peer_db.execute(req)
+rescue  => e
+    STDERR.puts "Error while geting peers"
+    STDERR.puts e.to_s
+end
+
 def get_random_peers(peer_count)
 	begin
-		req="select webrtc_id from #{$peer_state_table} limit #{peer_count}"
+		req="select webrtc_id from #{$peer_state_table} limit #{peer_count};"
 		res=$peer_db.execute(req)
     rescue  => e
         STDERR.puts "Error while geting peers"

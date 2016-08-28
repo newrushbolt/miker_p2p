@@ -104,16 +104,18 @@ end
 webrtc_raw_peers_cursor = webrtc_raw_peers.find({unchecked: 1}, cursor_type: :tailable_await).to_enum
 
 while true
-	raw_peer = webrtc_raw_peers_cursor.next
-	puts raw_peer["webrtc_id"]
-	if update_peers_info(raw_peer)
-		begin
-			webrtc_raw_peers.update_one({webrtc_id: raw_peer["webrtc_id"]},{"$set":{unchecked: 0}})
-		rescue => e
-			STDERR.puts "Error while setting checked flag to #{raw_peer["webrtc_id"]}"
-			STDERR.puts e.to_s
+	if webrtc_raw_peers_cursor.any?
+		raw_peer = webrtc_raw_peers_cursor.next
+		puts raw_peer["webrtc_id"]
+		if update_peers_info(raw_peer)
+			begin
+				webrtc_raw_peers.update_one({webrtc_id: raw_peer["webrtc_id"]},{"$set":{unchecked: 0}})
+			rescue => e
+				STDERR.puts "Error while setting checked flag to #{raw_peer["webrtc_id"]}"
+				STDERR.puts e.to_s
+			end
 		end
 	end
-	sleep(1)
+	sleep(0.1)
 end
 
