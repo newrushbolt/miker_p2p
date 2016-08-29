@@ -6,7 +6,6 @@ require 'whois'
 require 'json'
 require 'mongo'
 
-
 $peer_db=SQLite3::Database.new($peer_db_file)
 
 def get_asn_prefixes(asn)
@@ -15,11 +14,14 @@ def get_asn_prefixes(asn)
 	puts req
 	res=RestClient.get(req).body
 	asn_raw_peers=JSON.parse(res)["data"]["exports"]
-	cnt_t=0
-	cnt_f=0
+	
+	insert
 	asn_raw_peers.each do |raw_peer|
 		asn_peers.push(raw_peer["peer"])
+		
 	end
+	
+	
 	
 	puts asn_peers
 	raise 'exit'
