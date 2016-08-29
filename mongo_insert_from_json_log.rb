@@ -7,8 +7,7 @@ Mongo::Logger.logger.level = Logger::WARN
 mongo_client = client = Mongo::Client.new($mongo_url)
 webrtc_log=mongo_client[:log]
 
-raw_log_txt=ARGV[0]
-raw_log_json=IO.read(raw_log_txt)
+raw_log_json=IO.read($raw_log_txt)
 raw_log_data=JSON.parse(raw_log_json)["Logs"]
 
 cnt=0
