@@ -1,16 +1,13 @@
+require "#{Dir.pwd}/config.rb"
 require 'rubygems'
 require 'sqlite3'
 require 'json'
 
-peer_db_file='peers.sqlite3'
-peer_neighbors_table='peer_neighbors_raw'
-peer_db=SQLite3::Database.new(peer_db_file)
-raw_log_txt='data/raw_log'
-#raw_log_txt='c:\Users\Serge\Downloads\candy2.txt\candy.small.txt'
-#raw_log_txt='c:\Users\Serge\Downloads\candy2.txt\candy2.txt'
-raw_log_json=IO.read('data\raw_log')
+$peer_db=SQLite3::Database.new(peer_db_file)
 
+raw_log_json=IO.read($raw_log_txt)
 raw_log_data=JSON.parse(raw_log_json)["Logs"]
+
 cnt=0
 raw_log_data.each do |peer|
 	cnt+=1
@@ -23,7 +20,7 @@ raw_log_data.each do |peer|
 			# puts good_peer_data["bytes"]
 			# puts good_peer_data["ping"]
 			# puts good_peer_data["chunk_rate"]
-			req="insert into #{peer_neighbors_table} values (\"#{peer["me"]["id"]}\",\"#{good_peer_id}\",#{good_peer_data["ping"]},#{good_peer_data["chunk_rate"]},#{good_peer_data["bytes"]},#{peer["timestamp"]},NULL,NULL);"
+			req="insert into #{$peer_neighbors_table} values (\"#{peer["me"]["id"]}\",\"#{good_peer_id}\",#{good_peer_data["ping"]},#{good_peer_data["chunk_rate"]},#{good_peer_data["bytes"]},#{peer["timestamp"]},NULL,NULL);"
 			begin
 				res=peer_db.execute(req)
 		    rescue  => e

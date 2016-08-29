@@ -3,9 +3,6 @@ require 'rubygems'
 require 'sqlite3'
 require 'json'
 
-puts $mongo_url
-raise 'fck'
-
 if ARGV.count <2
 	STDERR.puts 'Peer ID and neighbor count needed, like this:'
 	STDERR.puts '>make_peer_list.worker.rb 8ecdc46f-1723-4474-b5ec-145e178cfb82 10'
@@ -13,13 +10,11 @@ if ARGV.count <2
 end
 
 $return_peers=[]
-
 $current_peer={}
 $current_peer["webrtc_id"]=ARGV[0]
 $peers_required=ARGV[1].to_i
 $peers_lack=false
 $peers_left=$peers_required
-
 
 $peer_db=SQLite3::Database.new($peer_db_file)
 
@@ -130,5 +125,5 @@ if random_peers.any?
 	end
 end
 
-enough_peers?.nil?
+enough_peers?.nil?.to_s
 
