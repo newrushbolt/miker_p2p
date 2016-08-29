@@ -28,7 +28,7 @@
 
 ###Mongo init
 systemctl start mongo
-mongo webrtc mongo_init.js
+mongo 127.0.0.1:3303/webrtc mongo_init.js
 
 ###download and unpack raw_log
 ts=`date +%s`
