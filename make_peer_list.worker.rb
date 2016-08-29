@@ -9,9 +9,9 @@ if ARGV.count <2
 	exit 1
 end
 
-$return_peers=[]
 $current_peer={}
 $current_peer["webrtc_id"]=ARGV[0]
+$return_data={"webrtc_id" => $current_peer["webrtc_id"],"peer_list" => []}
 $peers_required=ARGV[1].to_i
 $peers_lack=false
 $peers_left=$peers_required
@@ -31,11 +31,11 @@ if res[0][0] < $peers_required
 end
 
 def enough_peers?
-	if $return_peers.count >= $peers_required
-		puts JSON.generate($return_peers)
+	if $return_data["peer_list"].count >= $peers_required
+		puts JSON.generate($return_data)
 		exit
 	else
-		$peers_left = $peers_required - $return_peers.count 
+		$peers_left = $peers_required - $return_data["peer_list"].count 
 		return nil
 	end
 end
@@ -97,7 +97,7 @@ network_peers=get_network_peers($peers_left)
 if network_peers.any?
 	network_peers.each do |network_peer|
 		peer_line=[network_peer[0],"network"]
-		$return_peers.push(peer_line)
+		$return_data["peer_list"].push(peer_line)
 	end
 end
 
@@ -109,7 +109,7 @@ asn_peers=get_asn_peers($peers_left)
 if asn_peers.any?
 	asn_peers.each do |asn_peer|
 		peer_line=[asn_peer[0],"asn"]
-		$return_peers.push(peer_line)
+		$return_data["peer_list"].push(peer_line)
 	end
 end
 
@@ -121,7 +121,7 @@ random_peers=get_random_peers($peers_left)
 if random_peers.any?
 	random_peers.each do |random_peer|
 		peer_line=[random_peer[0],"random"]
-		$return_peers.push(peer_line)
+		$return_data["peer_list"].push(peer_line)
 	end
 end
 
