@@ -5,4 +5,4 @@ $net_weights_table='peer_state'
 
 $mongo_url='mongodb://127.0.0.1:3303/webrtc'
 
-$raw_log_txt='data/raw_log_500'
+$raw_log_txt='data/raw_log_10000'

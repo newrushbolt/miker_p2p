@@ -8,9 +8,7 @@ Mongo::Logger.logger.level = Logger::WARN
 mongo_client = client = Mongo::Client.new($mongo_url)
 webrtc_raw_peers=mongo_client[:raw_peers]
 
-raw_log_txt=ARGV[0]
-
-raw_log_json=IO.read(raw_log_txt)
+raw_log_json=IO.read($raw_log_txt)
 raw_log_data=JSON.parse(raw_log_json)["Logs"]
 cnt=0
 raw_log_data.each_index do |unit_key|
@@ -22,7 +20,6 @@ raw_log_data.each_index do |unit_key|
 	raw_log_data[unit_key].delete("badPeers")
 	raw_log_data[unit_key].delete("stun")
 	raw_log_data[unit_key].delete("me")
-	puts raw_log_data[unit_key]
 	begin
 		webrtc_raw_peers.insert_one(raw_log_data[unit_key])
 		cnt+=1
@@ -31,4 +28,4 @@ raw_log_data.each_index do |unit_key|
 		puts e.to_s
 	end
 end
-puts 'Finished, inserted #{cnt} lines'
+puts "Finished, inserted #{cnt} lines"
