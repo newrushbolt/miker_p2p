@@ -76,6 +76,18 @@ def get_asn_peers(peer_count)
 	return res
 end
 
+def get_city_peers(peer_count)
+	begin
+		req="select webrtc_id from #{$peer_state_table} where city=\"#{$current_peer["city"]}\" and asn<>#{$current_peer["asn"]} and network<>\"#{$current_peer["network"]}\" and webrtc_id <>\"#{$current_peer["webrtc_id"]}\" limit #{peer_count};"
+		res=$peer_db.execute(req)
+    rescue  => e
+        STDERR.puts "Error while geting city peers"
+        STDERR.puts e.to_s
+        return nil
+    end
+	return res
+end
+
 begin
 	req="select * from #{$peer_state_table} where webrtc_id = \"#{$current_peer["webrtc_id"]}\";"
 	res=$peer_db.execute(req)
@@ -93,7 +105,6 @@ $current_peer["country"]=res[0][6]
 $current_peer["city"]=res[0][7]
 
 network_peers=get_network_peers($peers_left)
-#puts network_peers.to_s
 if network_peers.any?
 	network_peers.each do |network_peer|
 		peer_line=[network_peer[0],"network"]
@@ -102,10 +113,7 @@ if network_peers.any?
 end
 
 enough_peers?
-#puts $peers_left
-
 asn_peers=get_asn_peers($peers_left)
-#puts asn_peers.to_s
 if asn_peers.any?
 	asn_peers.each do |asn_peer|
 		peer_line=[asn_peer[0],"asn"]
@@ -114,10 +122,16 @@ if asn_peers.any?
 end
 
 enough_peers?
-#puts $peers_left
+city_peers=get_city_peers($peers_left)
+if city_peers.any?
+	city_peers.each do |city_peer|
+		peer_line=[city_peer[0],"city"]
+		$return_data["peer_list"].push(peer_line)
+	end
+end
 
+enough_peers?
 random_peers=get_random_peers($peers_left)
-#puts random_peers.to_s
 if random_peers.any?
 	random_peers.each do |random_peer|
 		peer_line=[random_peer[0],"random"]
@@ -126,4 +140,3 @@ if random_peers.any?
 end
 
 enough_peers?.nil?.to_s
-
