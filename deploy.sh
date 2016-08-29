@@ -14,10 +14,17 @@
 # rubygem-json
 # rubygem-geoip
 # rubygem-mongo
-yum install curl gzip sqlite3 mongodb-server mongodb-client ruby rubygems rubygem-rest-client rubygem-sqlite3 rubygem-whois rubygem-json rubygem-geoip rubygem-mongo
+
+#yum install curl gzip sqlite3 mongodb-server mongodb-client ruby rubygems
+# rubygem-rest-client rubygem-sqlite3 rubygem-whois rubygem-json rubygem-geoip rubygem-mongo
+
+#Debian block
+#apt-get update
+#apt-get install mongodb curl gzip sqlite3 ruby rubygems
+#gem install rest-client sqlite3 whois json geoip mongo
 
 ###SQLite3 init
-sqlite3 peers.sqlite3 <peers.schema
+#sqlite3 peers.sqlite3 <peers.schema
 
 ###Mongo init
 systemctl start mongo

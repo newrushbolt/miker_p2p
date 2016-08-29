@@ -1,3 +1,4 @@
+require "#{Dir.pwd}/config.rb"
 require 'rubygems'
 require 'sqlite3'
 require 'rest-client'
@@ -6,12 +7,10 @@ require 'json'
 require 'geoip'
 require 'mongo'
 
-$peer_db_file='peers.sqlite3'
-$peer_state_table='peer_state'
 $peer_db=SQLite3::Database.new($peer_db_file)
 
 Mongo::Logger.logger.level = Logger::WARN
-mongo_client = client = Mongo::Client.new('mongodb://127.0.0.1:27017/webrtc')
+mongo_client = client = Mongo::Client.new($mongo_url)
 webrtc_raw_peers=mongo_client[:raw_peers]
 
 def update_peers_info(peer)
