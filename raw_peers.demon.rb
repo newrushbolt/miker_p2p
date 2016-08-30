@@ -108,7 +108,7 @@ webrtc_raw_peers_cursor = webrtc_raw_peers.find({unchecked: 1}, cursor_type: :ta
 while true
 	if webrtc_raw_peers_cursor.any?
 		raw_peer = webrtc_raw_peers_cursor.next
-		puts "webrtc_id #{raw_peer["webrtc_id"]}; channel_id #{raw_peer["webrtc_id"]}"
+		puts "webrtc_id #{raw_peer["webrtc_id"]}; channel_id #{raw_peer["channel_id"]}"
 		if update_peers_info(raw_peer)
 			begin
 				webrtc_raw_peers.update_one({webrtc_id: raw_peer["webrtc_id"]},{"$set":{unchecked: 0})
