@@ -24,7 +24,7 @@
 #gem install rest-client sqlite3 whois json geoip mongo
 
 ###SQLite3 init
-#sqlite3 peers.sqlite3 <peers.schema
+sqlite3 peers.sqlite3 <peers.schema
 
 ###Mongo init
 systemctl start mongo

@@ -1,3 +1,5 @@
+db.log.drop()
+db.paw_peers.drop()
 db.createCollection("log")
 db.log.createIndex({timestamp:-1})
 db.log.createIndex({webrtc_id:1})
