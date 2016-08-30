@@ -8,8 +8,8 @@ require 'geoip'
 require 'mongo'
 
 $peer_db=SQLite3::Database.new($peer_db_file)
-$out_log=File.open("#{$log_dir}/out.log")
-$err_log=File.open("#{$log_dir}/err.log")
+$out_log=File.open("#{$log_dir}/out.log", "a")
+$err_log=File.open("#{$log_dir}/err.log", "a")
 
 Mongo::Logger.logger.level = Logger::WARN
 mongo_client = client = Mongo::Client.new($mongo_url)
