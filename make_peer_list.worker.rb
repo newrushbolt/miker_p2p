@@ -20,7 +20,7 @@ $peers_left=$peers_required
 $peer_db=SQLite3::Database.new($peer_db_file)
 
 begin
-	req="select count(webrtc_id) from #{$peer_state_table};"
+	req="select count(webrtc_id) from #{$peer_state_table} where webrtc_id <> \"#{$current_peer["webrtc_id"]}\";"
 	res=$peer_db.execute(req)
 rescue  => e
     STDERR.puts "Error while counting peers in DB"
@@ -43,7 +43,7 @@ end
 
 def get_random_peers(peer_count)
 	begin
-		req="select webrtc_id from #{$peer_state_table} where channel_id = \"#{$current_peer["channel_id"]}\" webrtc_id <> \"#{$current_peer["webrtc_id"]}\" limit #{peer_count};"
+		req="select webrtc_id from #{$peer_state_table} where channel_id = \"#{$current_peer["channel_id"]}\" and webrtc_id <> \"#{$current_peer["webrtc_id"]}\" limit #{peer_count};"
 		res=$peer_db.execute(req)
     rescue  => e
         STDERR.puts "Error while geting peers"
@@ -140,4 +140,7 @@ if random_peers.any?
 	end
 end
 
-enough_peers?.nil?.to_s
+if enough_peers?.nil?
+	puts JSON.generate($return_data)
+	exit
+end
