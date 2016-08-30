@@ -1,35 +1,36 @@
 require "#{Dir.pwd}/config.rb"
 require 'rubygems'
-require 'sqlite3'
+require 'mysql2'
 require 'rest-client'
 require 'whois'
 require 'json'
 require 'geoip'
 require 'mongo'
 
-$peer_db=SQLite3::Database.new($peer_db_file)
+$p2p_db=Mysql2::Client.new(:host => $p2p_db_host, :database => $p2p_db, :username => $p2p_db_user, :password => $p2p_db_pass)
+
 
 Mongo::Logger.logger.level = Logger::WARN
 mongo_client = client = Mongo::Client.new($mongo_url)
 webrtc_raw_peers=mongo_client[:raw_peers]
 
 def update_peers_info(peer)
-#	peers.each do |peer|
 		begin
-			req="select * from #{$peer_state_table} where webrtc_id = \"#{peer["webrtc_id"]}\""
-			res=$peer_db.execute(req)
+			req="select * from #{$p2p_peer_state_table} where webrtc_id = \"#{peer["webrtc_id"]}\" and channel_id = \"#{peer["channel_id"]}\""
+			res=$p2p_db.query(req)
 		rescue  => e
-			STDERR.puts "Error in DB update request"
+			STDERR.puts "Error in DB request for #{peer["webrtc_id"]}"
 			STDERR.puts e.to_s
 			STDERR.puts req
 			return false
 		end
+		puts res.to_s#
 		if res.any?
 			begin
-				req="update #{$peer_state_table} set last_online = \"#{peer["timestamp"]}\" where webrtc_id= \"#{peer["webrtc_id"]}\";"
-				res=$peer_db.execute(req)	
+				req="update #{$p2p_peer_state_table} set last_online = \"#{peer["timestamp"]}\" where webrtc_id= \"#{peer["webrtc_id"]}\" and channel_id = \"#{peer["channel_id"]}\";"
+				res=$p2p_db.query(req)	
 			rescue  => e
-				STDERR.puts "Error in DB update for #{peer["ip"]}"
+				STDERR.puts "Error in DB update for #{peer["webrtc_id"]}"
 				STDERR.puts e.to_s
 				STDERR.puts req
 				STDERR.puts peer
@@ -48,16 +49,18 @@ def update_peers_info(peer)
 				return false
 			end
 			peer["network"]=aton_info[:network]
+			peer["netmask"]=aton_info[:netmask]
 			peer["asn"]=aton_info[:asn].nil? ? 0 : aton_info[:asn]
 			peer["netname"]=aton_info[:netname]
-			peer["geo_country"]=geo_info.country_code3
-			peer["geo_city"]=geo_info.city_name
+			peer["country"]=geo_info.country_code3
+			peer["region"]=geo_info.region
+			peer["city"]=geo_info.city_name
 			begin
-				req="insert into #{$peer_state_table} values (\"#{peer["webrtc_id"]}\", \"#{peer["ip"]}\",#{peer["timestamp"]},\"#{peer["network"]}\",\"#{peer["netname"]}\",#{peer["asn"]},\"#{peer["geo_country"]}\",\"#{peer["geo_city"]}\");"
-				res=$peer_db.execute(req)
+				req="insert into #{$p2p_peer_state_table} values (\"#{peer["webrtc_id"]}\",\"#{peer["channel_id"]}\",\"#{peer["gg_id"]}\",#{peer["timestamp"]}, INET_ATON(#{peer["ip"]}),INET_ATON(#{peer["network"]}),INET_ATON(#{peer["netmask"]}),#{peer["asn"]},\"#{peer["country"]}\",\"#{peer["region"]}\",\"#{peer["city"]}\");"
+				res=$p2p_db.query(req)
 				return true
 			rescue  => e
-				STDERR.puts "Error in DB insert for #{peer["ip"]}"
+				STDERR.puts "Error in DB insert for #{peer["webrtc_id"]}"
 				STDERR.puts e.to_s
 				STDERR.puts req
 				STDERR.puts peer
@@ -65,6 +68,7 @@ def update_peers_info(peer)
 			end
 		end
 #	end
+	raise 'fck'
 end
 
 def get_aton_info aton
