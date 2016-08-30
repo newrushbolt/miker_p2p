@@ -43,7 +43,7 @@ end
 
 def get_random_peers(peer_count)
 	begin
-		req="select webrtc_id from #{$peer_state_table} where channel_id = \"#{$current_peer["channel_id"]}\" limit #{peer_count};"
+		req="select webrtc_id from #{$peer_state_table} where channel_id = \"#{$current_peer["channel_id"]}\" webrtc_id <> \"#{$current_peer["webrtc_id"]}\" limit #{peer_count};"
 		res=$peer_db.execute(req)
     rescue  => e
         STDERR.puts "Error while geting peers"

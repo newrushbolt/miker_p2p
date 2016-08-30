@@ -32,18 +32,21 @@ def update_peers_info(peer)
 				STDERR.puts "Error in DB update for #{peer["ip"]}"
 				STDERR.puts e.to_s
 				STDERR.puts req
-				STDERR.puts peer
+				STDERR.puts peer.to_s
 				return false
 			end
 		else
 			aton_info=get_aton_info(peer["ip"])
 			if aton_info.nil?
-				 STDERR.puts "Error in RIPE for #{peer["ip"]}"
+				 STDERR.puts "Error in RIPE for #{peer["webrtc_id"]}"
+				 STDERR.puts peer.to_s
+				 return false
 			end
 			begin
 				geo_info=GeoIP.new('GeoLiteCity.dat').city(peer["ip"])
 			rescue  => e
 				STDERR.puts "Error in GeoIP for #{peer["ip"]}"
+				STDERR.puts peer.to_s				
 				STDERR.puts e.to_s
 				return false
 			end
@@ -60,7 +63,7 @@ def update_peers_info(peer)
 				STDERR.puts "Error in DB insert for #{peer["ip"]}"
 				STDERR.puts e.to_s
 				STDERR.puts req
-				STDERR.puts peer
+				STDERR.puts peer.to_s
 				return false
 			end
 		end
@@ -74,8 +77,8 @@ def get_aton_info aton
 		aton_ip=IPAddr.new(aton)
         whois_result= whois_client.lookup(aton).to_s
     rescue  => e
-        puts "Error while geting #{aton} info"
-        puts e.to_s
+        STDERR.puts "Error while geting #{aton} info"
+        STDERR.puts e.to_s
         return nil
     end
     if whois_result and 
@@ -108,7 +111,7 @@ while true
 		puts "webrtc_id #{raw_peer["webrtc_id"]}; channel_id #{raw_peer["webrtc_id"]}"
 		if update_peers_info(raw_peer)
 			begin
-				webrtc_raw_peers.update_one({webrtc_id: raw_peer["webrtc_id"]},{$set:{"unchecked": 0}})
+				webrtc_raw_peers.update_one({webrtc_id: raw_peer["webrtc_id"]},{"$set":{unchecked: 0})
 			rescue => e
 				STDERR.puts "Error while setting checked flag to #{raw_peer["webrtc_id"]}"
 				STDERR.puts e.to_s
