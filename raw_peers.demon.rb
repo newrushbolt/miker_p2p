@@ -16,7 +16,7 @@ webrtc_raw_peers=mongo_client[:raw_peers]
 def update_peers_info(peer)
 #	peers.each do |peer|
 		begin
-			req="select * from #{$peer_state_table} where webrtc_id = \"#{peer["webrtc_id"]}\""
+			req="select * from #{$peer_state_table} where webrtc_id = \"#{peer["webrtc_id"]}\" and channel_id= \"#{peer["channel_id"]}\""
 			res=$peer_db.execute(req)
 		rescue  => e
 			STDERR.puts "Error in DB update request"
@@ -26,7 +26,7 @@ def update_peers_info(peer)
 		end
 		if res.any?
 			begin
-				req="update #{$peer_state_table} set last_online = \"#{peer["timestamp"]}\" where webrtc_id= \"#{peer["webrtc_id"]}\";"
+				req="update #{$peer_state_table} set last_online = \"#{peer["timestamp"]}\" where webrtc_id= \"#{peer["webrtc_id"]}\" and channel_id= \"#{peer["channel_id"]}\";"
 				res=$peer_db.execute(req)	
 			rescue  => e
 				STDERR.puts "Error in DB update for #{peer["ip"]}"
@@ -53,7 +53,7 @@ def update_peers_info(peer)
 			peer["geo_country"]=geo_info.country_code3
 			peer["geo_city"]=geo_info.city_name
 			begin
-				req="insert into #{$peer_state_table} values (\"#{peer["webrtc_id"]}\", \"#{peer["ip"]}\",#{peer["timestamp"]},\"#{peer["network"]}\",\"#{peer["netname"]}\",#{peer["asn"]},\"#{peer["geo_country"]}\",\"#{peer["geo_city"]}\");"
+				req="insert into #{$peer_state_table} values (\"#{peer["webrtc_id"]}\",\"#{peer["channel_id"]}\", \"#{peer["ip"]}\",#{peer["timestamp"]},\"#{peer["network"]}\",\"#{peer["netname"]}\",#{peer["asn"]},\"#{peer["geo_country"]}\",\"#{peer["geo_city"]}\");"
 				res=$peer_db.execute(req)
 				return true
 			rescue  => e
@@ -105,7 +105,7 @@ webrtc_raw_peers_cursor = webrtc_raw_peers.find({unchecked: 1}, cursor_type: :ta
 while true
 	if webrtc_raw_peers_cursor.any?
 		raw_peer = webrtc_raw_peers_cursor.next
-		puts raw_peer["webrtc_id"]
+		puts "webrtc_id #{raw_peer["webrtc_id"]}; channel_id #{raw_peer["webrtc_id"]}"
 		if update_peers_info(raw_peer)
 			begin
 				webrtc_raw_peers.update_one({webrtc_id: raw_peer["webrtc_id"]},{"$set":{unchecked: 0}})

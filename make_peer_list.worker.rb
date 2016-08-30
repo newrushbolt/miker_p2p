@@ -3,16 +3,17 @@ require 'rubygems'
 require 'sqlite3'
 require 'json'
 
-if ARGV.count <2
-	STDERR.puts 'Peer ID and neighbor count needed, like this:'
-	STDERR.puts '>make_peer_list.worker.rb 8ecdc46f-1723-4474-b5ec-145e178cfb82 10'
+if ARGV.count <3
+	STDERR.puts 'Peer ID, channel ID and neighbors count needed, like this:'
+	STDERR.puts '>make_peer_list.worker.rb 8ecdc46f-1723-4474-b5ec-145e178cfb82 1231fsa2 10'
 	exit 1
 end
 
 $current_peer={}
 $current_peer["webrtc_id"]=ARGV[0]
-$return_data={"webrtc_id" => $current_peer["webrtc_id"],"peer_list" => []}
-$peers_required=ARGV[1].to_i
+$current_peer["channel_id"]=ARGV[1]
+$return_data={"webrtc_id" => $current_peer["webrtc_id"], "channel_id" => $current_peer["channel_id"],"peer_list" => []}
+$peers_required=ARGV[2].to_i
 $peers_lack=false
 $peers_left=$peers_required
 
@@ -42,7 +43,7 @@ end
 
 def get_random_peers(peer_count)
 	begin
-		req="select webrtc_id from #{$peer_state_table} limit #{peer_count};"
+		req="select webrtc_id from #{$peer_state_table} where channel_id = \"#{$current_peer["channel_id"]}\" limit #{peer_count};"
 		res=$peer_db.execute(req)
     rescue  => e
         STDERR.puts "Error while geting peers"
@@ -54,7 +55,7 @@ end
 
 def get_network_peers(peer_count)
 	begin
-		req="select webrtc_id from #{$peer_state_table} where network=\"#{$current_peer["network"]}\" and webrtc_id <> \"#{$current_peer["webrtc_id"]}\" limit #{peer_count};"
+		req="select webrtc_id from #{$peer_state_table} where network=\"#{$current_peer["network"]}\" and webrtc_id <> \"#{$current_peer["webrtc_id"]}\" and channel_id = \"#{$current_peer["channel_id"]}\" limit #{peer_count};"
 		res=$peer_db.execute(req)
     rescue  => e
         STDERR.puts "Error while geting network peers"
@@ -66,7 +67,7 @@ end
 
 def get_asn_peers(peer_count)
 	begin
-		req="select webrtc_id from #{$peer_state_table} where asn=#{$current_peer["asn"]} and network<>\"#{$current_peer["network"]}\" and webrtc_id <> \"#{$current_peer["webrtc_id"]}\" limit #{peer_count};"
+		req="select webrtc_id from #{$peer_state_table} where asn=#{$current_peer["asn"]} and network<>\"#{$current_peer["network"]}\" and webrtc_id <> \"#{$current_peer["webrtc_id"]}\" and channel_id = \"#{$current_peer["channel_id"]}\" limit #{peer_count};"
 		res=$peer_db.execute(req)
     rescue  => e
         STDERR.puts "Error while geting ASN peers"
@@ -78,7 +79,7 @@ end
 
 def get_city_peers(peer_count)
 	begin
-		req="select webrtc_id from #{$peer_state_table} where city=\"#{$current_peer["city"]}\" and asn<>#{$current_peer["asn"]} and network<>\"#{$current_peer["network"]}\" and webrtc_id <>\"#{$current_peer["webrtc_id"]}\" limit #{peer_count};"
+		req="select webrtc_id from #{$peer_state_table} where city=\"#{$current_peer["city"]}\" and asn<>#{$current_peer["asn"]} and network<>\"#{$current_peer["network"]}\" and webrtc_id <>\"#{$current_peer["webrtc_id"]}\" and channel_id = \"#{$current_peer["channel_id"]}\" limit #{peer_count};"
 		res=$peer_db.execute(req)
     rescue  => e
         STDERR.puts "Error while geting city peers"
@@ -89,20 +90,20 @@ def get_city_peers(peer_count)
 end
 
 begin
-	req="select * from #{$peer_state_table} where webrtc_id = \"#{$current_peer["webrtc_id"]}\";"
+	req="select * from #{$peer_state_table} where webrtc_id = \"#{$current_peer["webrtc_id"]}\" and channel_id = \"#{$current_peer["channel_id"]}\";"
 	res=$peer_db.execute(req)
 rescue => e
     STDERR.puts "Error while geting peer info"
     STDERR.puts e.to_s
 end
 
-$current_peer["ip"]=res[0][1]
-$current_peer["network"]=res[0][3]
-$current_peer["last_online"]=res[0][2]
-$current_peer["netname"]=res[0][4]
-$current_peer["asn"]=res[0][5]
-$current_peer["country"]=res[0][6]
-$current_peer["city"]=res[0][7]
+$current_peer["ip"]=res[0][2]
+$current_peer["network"]=res[0][4]
+$current_peer["last_online"]=res[0][3]
+$current_peer["netname"]=res[0][5]
+$current_peer["asn"]=res[0][6]
+$current_peer["country"]=res[0][7]
+$current_peer["city"]=res[0][8]
 
 network_peers=get_network_peers($peers_left)
 if network_peers.any?
