@@ -108,7 +108,7 @@ while true
 		puts "webrtc_id #{raw_peer["webrtc_id"]}; channel_id #{raw_peer["webrtc_id"]}"
 		if update_peers_info(raw_peer)
 			begin
-				webrtc_raw_peers.update_one({webrtc_id: raw_peer["webrtc_id"]},{"$set":{unchecked: 0}})
+				webrtc_raw_peers.update_one({webrtc_id: raw_peer["webrtc_id"]},{$set:{"unchecked": 0}})
 			rescue => e
 				STDERR.puts "Error while setting checked flag to #{raw_peer["webrtc_id"]}"
 				STDERR.puts e.to_s
