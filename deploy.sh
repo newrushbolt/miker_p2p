@@ -21,7 +21,7 @@
 #Debian block
 #apt-get update
 #apt-get install mongodb curl gzip sqlite3 ruby rubygems
-#gem install rest-client sqlite3 whois json geoip mongo
+gem install rest-client mysql2 whois json geoip mongo
 
 ###SQLite3 init
 #sqlite3 peers.sqlite3 <peers.schema
