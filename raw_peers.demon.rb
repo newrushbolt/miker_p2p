@@ -8,6 +8,8 @@ require 'geoip'
 require 'mongo'
 
 $peer_db=SQLite3::Database.new($peer_db_file)
+$out_log=File.open("#{$log_dir}/out.log")
+$err_log=File.open("#{$log_dir}/err.log")
 
 Mongo::Logger.logger.level = Logger::WARN
 mongo_client = client = Mongo::Client.new($mongo_url)
@@ -18,36 +20,36 @@ def update_peers_info(peer)
 		begin
 			req="select * from #{$peer_state_table} where webrtc_id = \"#{peer["webrtc_id"]}\" and channel_id= \"#{peer["channel_id"]}\""
 			res=$peer_db.execute(req)
-		rescue  => e
-			STDERR.puts "Error in DB update request"
-			STDERR.puts e.to_s
-			STDERR.puts req
+		rescue => e
+			$err_log.puts "Error in DB update request"
+			$err_log.puts e.to_s
+			$err_log.puts req
 			return false
 		end
 		if res.any?
 			begin
 				req="update #{$peer_state_table} set last_online = \"#{peer["timestamp"]}\" where webrtc_id= \"#{peer["webrtc_id"]}\" and channel_id= \"#{peer["channel_id"]}\";"
 				res=$peer_db.execute(req)	
-			rescue  => e
-				STDERR.puts "Error in DB update for #{peer["ip"]}"
-				STDERR.puts e.to_s
-				STDERR.puts req
-				STDERR.puts peer.to_s
+			rescue => e
+				$err_log.puts "Error in DB update for #{peer["ip"]}"
+				$err_log.puts e.to_s
+				$err_log.puts req
+				$err_log.puts peer.to_s
 				return false
 			end
 		else
 			aton_info=get_aton_info(peer["ip"])
 			if aton_info.nil?
-				 STDERR.puts "Error in RIPE for #{peer["webrtc_id"]}"
-				 STDERR.puts peer.to_s
+				 $err_log.puts "Error in RIPE for #{peer["webrtc_id"]}"
+				 $err_log.puts peer.to_s
 				 return false
 			end
 			begin
 				geo_info=GeoIP.new('GeoLiteCity.dat').city(peer["ip"])
-			rescue  => e
-				STDERR.puts "Error in GeoIP for #{peer["ip"]}"
-				STDERR.puts peer.to_s				
-				STDERR.puts e.to_s
+			rescue => e
+				$err_log.puts "Error in GeoIP for #{peer["ip"]}"
+				$err_log.puts peer.to_s				
+				$err_log.puts e.to_s
 				return false
 			end
 			peer["network"]=aton_info[:network]
@@ -60,10 +62,10 @@ def update_peers_info(peer)
 				res=$peer_db.execute(req)
 				return true
 			rescue  => e
-				STDERR.puts "Error in DB insert for #{peer["ip"]}"
-				STDERR.puts e.to_s
-				STDERR.puts req
-				STDERR.puts peer.to_s
+				$err_log.puts "Error in DB insert for #{peer["ip"]}"
+				$err_log.puts e.to_s
+				$err_log.puts req
+				$err_log.puts peer.to_s
 				return false
 			end
 		end
@@ -77,8 +79,8 @@ def get_aton_info aton
 		aton_ip=IPAddr.new(aton)
         whois_result= whois_client.lookup(aton).to_s
     rescue  => e
-        STDERR.puts "Error while geting #{aton} info"
-        STDERR.puts e.to_s
+        $err_log.puts "Error while geting #{aton} info"
+        $err_log.puts e.to_s
         return nil
     end
     if whois_result and 
@@ -108,16 +110,15 @@ webrtc_raw_peers_cursor = webrtc_raw_peers.find({unchecked: 1}, cursor_type: :ta
 while true
 	if webrtc_raw_peers_cursor.any?
 		raw_peer = webrtc_raw_peers_cursor.next
-		puts "webrtc_id #{raw_peer["webrtc_id"]}; channel_id #{raw_peer["channel_id"]}"
+		$out_log.puts "#{Time.now.to_i} webrtc_id #{raw_peer["webrtc_id"]}; channel_id #{raw_peer["channel_id"]}"
 		if update_peers_info(raw_peer)
 			begin
 				webrtc_raw_peers.update_one({webrtc_id: raw_peer["webrtc_id"]},{"$set":{unchecked: 0}})
 			rescue => e
-				STDERR.puts "Error while setting checked flag to #{raw_peer["webrtc_id"]}"
-				STDERR.puts e.to_s
+				$err_log.puts "Error while setting checked flag to #{raw_peer["webrtc_id"]}"
+				$err_log.puts e.to_s
 			end
 		end
 	end
 	sleep(0.1)
 end
-
