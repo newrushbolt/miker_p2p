@@ -57,7 +57,10 @@ def make_peer_list(args)
 		end
 	end
 
-	enough_peers?
+	if enough_peers?
+		return JSON.generate($return_data)
+	end
+	
 	asn_peers=get_asn_peers($peers_left)
 	if asn_peers.any?
 		asn_peers.each do |asn_peer|
@@ -66,7 +69,9 @@ def make_peer_list(args)
 		end
 	end
 
-	enough_peers?
+	if enough_peers?
+		return JSON.generate($return_data)
+	end
 	city_peers=get_city_peers($peers_left)
 	if city_peers.any?
 		city_peers.each do |city_peer|
@@ -75,7 +80,9 @@ def make_peer_list(args)
 		end
 	end
 
-	enough_peers?
+	if enough_peers?
+		return JSON.generate($return_data)
+	end
 	random_peers=get_random_peers($peers_left)
 	if random_peers.any?
 		random_peers.each do |random_peer|
@@ -84,19 +91,16 @@ def make_peer_list(args)
 		end
 	end
 
-	if enough_peers?.nil?
-		puts JSON.generate($return_data)
-		exit
+	return JSON.generate($return_data)
 	end
 end
 
 def enough_peers?
 	if $return_data["peer_list"].count >= $peers_required
-		puts JSON.generate($return_data)
-		exit
+		return true
 	else
 		$peers_left = $peers_required - $return_data["peer_list"].count 
-		return nil
+		return false
 	end
 end
 
