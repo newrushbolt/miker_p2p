@@ -21,34 +21,33 @@ webrtc_raw_peers=mongo_client[:raw_peers]
 def update_peers_info(peer)
 #	peers.each do |peer|
 		res=nil
-		bnch=Benchmark.measure{
-			begin
+		begin
+			bnch=Benchmark.measure{
 				req="select * from #{$peer_state_table} where webrtc_id = \"#{peer["webrtc_id"]}\" and channel_id= \"#{peer["channel_id"]}\""
 				res=$peer_db.execute(req)
+			}
+			$out_logger.info("Getting peer info got #{bnch.real}")	
 			rescue => e
 				$err_logger.error("Error in DB update request")
 				$err_logger.error(e.to_s)
 				$err_logger.error(req)
 				return false
 			end
-		}
-		$out_logger.info("Getting peer info got #{bnch.real}")
 		if res.any?
-			res=nil
-			bnch=Benchmark.measure{
-				begin
+			begin
+				bnch=Benchmark.measure{
 					req="update #{$peer_state_table} set last_online = \"#{peer["timestamp"]}\" where webrtc_id= \"#{peer["webrtc_id"]}\" and channel_id= \"#{peer["channel_id"]}\";"
 					res=$peer_db.execute(req)
-					return true
-				rescue => e
-					$err_logger.error("Error in DB update for #{peer["ip"]}")
-					$err_logger.error(e.to_s)
-					$err_logger.error(req)
-					$err_logger.error(peer.to_s)
-					return false
-				end
-			}
-			$out_logger.info("Upating peer timestamp got #{bnch.real}")
+				}
+				$out_logger.info("Upating peer timestamp got #{bnch.real}")
+				return true
+			rescue => e
+				$err_logger.error("Error in DB update for #{peer["ip"]}")
+				$err_logger.error(e.to_s)
+				$err_logger.error(req)
+				$err_logger.error(peer.to_s)
+				return false
+			end
 		else
 			aton_info=nil
 			bnch=Benchmark.measure{
@@ -78,20 +77,20 @@ def update_peers_info(peer)
 			peer["geo_country"]=geo_info.country_code3
 			peer["geo_city"]=geo_info.city_name
 			res=nil
-			bnch=Benchmark.measure{
-				begin
+			begin
+				bnch=Benchmark.measure{
 					req="insert into #{$peer_state_table} values (\"#{peer["webrtc_id"]}\",\"#{peer["channel_id"]}\", \"#{peer["ip"]}\",#{peer["timestamp"]},\"#{peer["network"]}\",\"#{peer["netname"]}\",#{peer["asn"]},\"#{peer["geo_country"]}\",\"#{peer["geo_city"]}\");"
 					res=$peer_db.execute(req)
-					return true
-				rescue  => e
-					$err_logger.error("Error in DB insert for #{peer["ip"]}")
-					$err_logger.error(e.to_s)
-					$err_logger.error(req)
-					$err_logger.error(peer.to_s)
-					return false
-				end
-			}
-			$out_logger.info "update SQL info for(#{peer["webrtc_id"]}) got #{bnch.real}"
+				}
+				$out_logger.info "update SQL info for(#{peer["webrtc_id"]}) got #{bnch.real}"
+				return true
+			rescue  => e
+				$err_logger.error("Error in DB insert for #{peer["ip"]}")
+				$err_logger.error(e.to_s)
+				$err_logger.error(req)
+				$err_logger.error(peer.to_s)
+				return false
+			end
 		end
 #	end
 end
@@ -144,5 +143,5 @@ while true
 			end
 		end
 	end
-	sleep(0.1)
+	sleep(0.01)
 end

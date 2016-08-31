@@ -36,7 +36,7 @@ all_peers.each do |peer|
 #		puts "Found in Mongo #{f_peer["webrtc_id"]}"
 #	    end
 	else
-	    puts "Removing #{webrtc_id} from SQL couse not found in Mongo"
+	    puts "Removing #{webrtc_id} from SQL cause not found in Mongo"
 	    begin
 		req="delete from #{$peer_state_table} where webrtc_id = \"#{webrtc_id}\";"
 		res=$peer_db.execute(req)
