@@ -39,7 +39,10 @@ def update_peers_info(peer)
 				return false
 			end
 		else
-			aton_info=get_aton_info(peer["ip"])
+			bnch=Benchmark.measure{
+				aton_info=get_aton_info(peer["ip"])
+				}
+			$out_logger.info("get_aton_info(#{aton}) got #{bnch.real}")
 			if aton_info.nil?
 				 $err_logger.error "Error in RIPE for #{peer["webrtc_id"]}"
 				 $err_logger.error peer.to_s
@@ -80,12 +83,10 @@ def update_peers_info(peer)
 end
 
 def get_aton_info(aton)
-	bnch=Benchmark.measure{
 		info_result = {}
 		whois_client = Whois::Client.new
 		begin
 			aton_ip=IPAddr.new(aton)
-			puts Benchmark.realtime{
 			whois_result= whois_client.lookup(aton).to_s
 		rescue  => e
 			$err_logger.error "Error while geting #{aton} info"
@@ -112,8 +113,6 @@ def get_aton_info(aton)
 			end
 		end
 		return info_result
-	}
-	$out_logger.info("get_aton_info(#{aton}) got #{bnch.real}")
 end
 
 webrtc_raw_peers_cursor = webrtc_raw_peers.find({unchecked: 1}, cursor_type: :tailable_await).to_enum
