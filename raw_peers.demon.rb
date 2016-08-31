@@ -20,31 +20,37 @@ webrtc_raw_peers=mongo_client[:raw_peers]
 
 def update_peers_info(peer)
 #	peers.each do |peer|
-		begin
-			req="select * from #{$peer_state_table} where webrtc_id = \"#{peer["webrtc_id"]}\" and channel_id= \"#{peer["channel_id"]}\""
-			res=$peer_db.execute(req)
-		rescue => e
-			$err_logger.error("Error in DB update request")
-			$err_logger.error(e.to_s)
-			$err_logger.error(req)
-			return false
-		end
-		if res.any?
+		bnch=Benchmark.measure{
 			begin
-				req="update #{$peer_state_table} set last_online = \"#{peer["timestamp"]}\" where webrtc_id= \"#{peer["webrtc_id"]}\" and channel_id= \"#{peer["channel_id"]}\";"
-				res=$peer_db.execute(req)	
+				req="select * from #{$peer_state_table} where webrtc_id = \"#{peer["webrtc_id"]}\" and channel_id= \"#{peer["channel_id"]}\""
+				res=$peer_db.execute(req)
 			rescue => e
-				$err_logger.error("Error in DB update for #{peer["ip"]}")
+				$err_logger.error("Error in DB update request")
 				$err_logger.error(e.to_s)
 				$err_logger.error(req)
-				$err_logger.error(peer.to_s)
 				return false
 			end
+		}
+		$out_logger.info("Getting peer info got #{bnch.real}")
+		if res.any?
+			bnch=Benchmark.measure{
+				begin
+					req="update #{$peer_state_table} set last_online = \"#{peer["timestamp"]}\" where webrtc_id= \"#{peer["webrtc_id"]}\" and channel_id= \"#{peer["channel_id"]}\";"
+					res=$peer_db.execute(req)	
+				rescue => e
+					$err_logger.error("Error in DB update for #{peer["ip"]}")
+					$err_logger.error(e.to_s)
+					$err_logger.error(req)
+					$err_logger.error(peer.to_s)
+					return false
+				end
+			}
+			$out_logger.info("Upating peer timestamp got #{bnch.real}")
 		else
 			bnch=Benchmark.measure{
 				aton_info=get_aton_info(peer["ip"])
-				}
-			$out_logger.info("get_aton_info(#{aton}) got #{bnch.real}")
+			}
+			$out_logger.info("get_aton_info(#{peer["ip"]}) got #{bnch.real}")
 			if aton_info.nil?
 				 $err_logger.error("Error in RIPE for #{peer["webrtc_id"]}")
 				 $err_logger.error(peer.to_s)
