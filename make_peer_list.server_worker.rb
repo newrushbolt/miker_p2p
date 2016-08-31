@@ -92,7 +92,6 @@ def make_peer_list(args)
 	end
 
 	return JSON.generate($return_data)
-	end
 end
 
 def enough_peers?

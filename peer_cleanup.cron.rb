@@ -29,7 +29,20 @@ end
 
 all_peers.each do |peer|
 	webrtc_id=peer[0]
-	puts webrtc_id
-	found_peer=webrtc_raw_peers.find({webrtc_id: webrtc_id})
-	puts found_peer.to_s
+#	puts "Found in SQL #{webrtc_id}"
+	found_peer=webrtc_raw_peers.find({webrtc_id: "#{webrtc_id}"},{webrtc_id: 1})
+	if found_peer.any?
+#	    found_peer.each do |f_peer|
+#		puts "Found in Mongo #{f_peer["webrtc_id"]}"
+#	    end
+	else
+	    puts "Removing #{webrtc_id} from SQL couse not found in Mongo"
+	    begin
+		req="delete from #{$peer_state_table} where webrtc_id = \"#{webrtc_id}\";"
+		res=$peer_db.execute(req)
+	    rescue  => e
+		STDERR.puts "Error while removing peer #{webrtc_id} from SQL"
+		STDERR.puts e.to_s
+	    end
+	end
 end
