@@ -7,6 +7,8 @@ require 'whois'
 require 'json'
 require 'geoip'
 require 'mongo'
+require 'benchmark'
+
 
 $peer_db=SQLite3::Database.new($peer_db_file)
 $out_logger=Logger.new("#{$log_dir}/out.log")
@@ -22,9 +24,9 @@ def update_peers_info(peer)
 			req="select * from #{$peer_state_table} where webrtc_id = \"#{peer["webrtc_id"]}\" and channel_id= \"#{peer["channel_id"]}\""
 			res=$peer_db.execute(req)
 		rescue => e
-			$err_logger.error "Error in DB update request"
-			$err_logger.error e.to_s
-			$err_logger.error req
+			$err_logger.error("Error in DB update request")
+			$err_logger.error(e.to_s)
+			$err_logger.error(req)
 			return false
 		end
 		if res.any?
@@ -32,10 +34,10 @@ def update_peers_info(peer)
 				req="update #{$peer_state_table} set last_online = \"#{peer["timestamp"]}\" where webrtc_id= \"#{peer["webrtc_id"]}\" and channel_id= \"#{peer["channel_id"]}\";"
 				res=$peer_db.execute(req)	
 			rescue => e
-				$err_logger.error "Error in DB update for #{peer["ip"]}"
-				$err_logger.error e.to_s
-				$err_logger.error req
-				$err_logger.error peer.to_s
+				$err_logger.error("Error in DB update for #{peer["ip"]}")
+				$err_logger.error(e.to_s)
+				$err_logger.error(req)
+				$err_logger.error(peer.to_s)
 				return false
 			end
 		else
@@ -44,17 +46,17 @@ def update_peers_info(peer)
 				}
 			$out_logger.info("get_aton_info(#{aton}) got #{bnch.real}")
 			if aton_info.nil?
-				 $err_logger.error "Error in RIPE for #{peer["webrtc_id"]}"
-				 $err_logger.error peer.to_s
+				 $err_logger.error("Error in RIPE for #{peer["webrtc_id"]}")
+				 $err_logger.error(peer.to_s)
 				 return false
 			end
 			bnch=Benchmark.measure{
 				begin
 					geo_info=GeoIP.new('GeoLiteCity.dat').city(peer["ip"])
 				rescue => e
-					$err_logger.error "Error in GeoIP for #{peer["ip"]}"
-					$err_logger.error peer.to_s				
-					$err_logger.error e.to_s
+					$err_logger.error("Error in GeoIP for #{peer["ip"]}")
+					$err_logger.error(peer.to_s)
+					$err_logger.error(e.to_s)
 					return false
 				end
 			}
@@ -70,14 +72,14 @@ def update_peers_info(peer)
 					res=$peer_db.execute(req)
 					return true
 				rescue  => e
-					$err_logger.error "Error in DB insert for #{peer["ip"]}"
-					$err_logger.error e.to_s
-					$err_logger.error req
-					$err_logger.error peer.to_s
+					$err_logger.error("Error in DB insert for #{peer["ip"]}")
+					$err_logger.error(e.to_s)
+					$err_logger.error(req)
+					$err_logger.error(peer.to_s)
 					return false
 				end
 			}
-			$out_logger.info("update SQL info for(#{peer["webrtc_id"]}) got #{bnch.real}")
+			$out_logger.info "update SQL info for(#{peer["webrtc_id"]}) got #{bnch.real}"
 		end
 #	end
 end
@@ -89,8 +91,8 @@ def get_aton_info(aton)
 			aton_ip=IPAddr.new(aton)
 			whois_result= whois_client.lookup(aton).to_s
 		rescue  => e
-			$err_logger.error "Error while geting #{aton} info"
-			$err_logger.error e.to_s
+			$err_logger.error("Error while geting #{aton} info")
+			$err_logger.error(e.to_s)
 			return nil
 		end
 		if whois_result and 
@@ -125,8 +127,8 @@ while true
 			begin
 				webrtc_raw_peers.update_one({webrtc_id: raw_peer["webrtc_id"]},{"$set":{unchecked: 0}})
 			rescue => e
-				$err_logger.error "Error while setting checked flag to #{raw_peer["webrtc_id"]}"
-				$err_logger.error e.to_s
+				$err_logger.error("Error while setting checked flag to #{raw_peer["webrtc_id"]}")
+				$err_logger.error(e.to_s)
 			end
 		end
 	end
