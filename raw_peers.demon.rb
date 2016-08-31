@@ -1,4 +1,5 @@
 require "#{Dir.pwd}/config.rb"
+require 'logger'
 require 'rubygems'
 require 'mysql2'
 require 'rest-client'
@@ -7,45 +8,47 @@ require 'json'
 require 'geoip'
 require 'mongo'
 
-$p2p_db=Mysql2::Client.new(:host => $p2p_db_host, :database => $p2p_db, :username => $p2p_db_user, :password => $p2p_db_pass)
+$p2p_db_client=Mysql2::Client.new(:host => $p2p_db_client_host, :database => $p2p_db, :username => $p2p_db_client_user, :password => $p2p_db_client_pass)
 
+$out_logger=Logger.new("#{$log_dir}/out.log")
+$err_logger=Logger.new("#{$log_dir}/err.log")
 
 Mongo::Logger.logger.level = Logger::WARN
 mongo_client = client = Mongo::Client.new($mongo_url)
-webrtc_raw_peers=mongo_client[:raw_peers]
+$webrtc_raw_peers=mongo_client[:raw_peers]
 
 def update_peers_info(peer)
 		begin
-			req="select * from #{$p2p_peer_state_table} where webrtc_id = \"#{peer["webrtc_id"]}\" and channel_id = \"#{peer["channel_id"]}\""
-			res=$p2p_db.query(req)
+			req="select * from #{$p2p_db_state_table} where webrtc_id = \"#{peer["webrtc_id"]}\" and channel_id = \"#{peer["channel_id"]}\""
+			res=$p2p_db_client.query(req)
 		rescue  => e
-			STDERR.puts "Error in DB request for #{peer["webrtc_id"]}"
-			STDERR.puts e.to_s
-			STDERR.puts req
+			$err_logger.error "Error in DB request for #{peer["webrtc_id"]}"
+			$err_logger.error e.to_s
+			$err_logger.error req
 			return false
 		end
 		puts res.to_s#
 		if res.any?
 			begin
-				req="update #{$p2p_peer_state_table} set last_online = \"#{peer["timestamp"]}\" where webrtc_id= \"#{peer["webrtc_id"]}\" and channel_id = \"#{peer["channel_id"]}\";"
-				res=$p2p_db.query(req)	
+				req="update #{$p2p_db_state_table} set last_online = \"#{peer["timestamp"]}\" where webrtc_id= \"#{peer["webrtc_id"]}\" and channel_id = \"#{peer["channel_id"]}\";"
+				res=$p2p_db_client.query(req)	
 			rescue  => e
-				STDERR.puts "Error in DB update for #{peer["webrtc_id"]}"
-				STDERR.puts e.to_s
-				STDERR.puts req
-				STDERR.puts peer
+				$err_logger.error "Error in DB update for #{peer["webrtc_id"]}"
+				$err_logger.error e.to_s
+				$err_logger.error req
+				$err_logger.error peer
 				return false
 			end
 		else
 			aton_info=get_aton_info(peer["ip"])
 			if aton_info.nil?
-				 STDERR.puts "Error in RIPE for #{peer["ip"]}"
+				 $err_logger.error "Error in RIPE for #{peer["ip"]}"
 			end
 			begin
 				geo_info=GeoIP.new('GeoLiteCity.dat').city(peer["ip"])
 			rescue  => e
-				STDERR.puts "Error in GeoIP for #{peer["ip"]}"
-				STDERR.puts e.to_s
+				$err_logger.error "Error in GeoIP for #{peer["ip"]}"
+				$err_logger.error e.to_s
 				return false
 			end
 			peer["network"]=aton_info[:network]
@@ -56,14 +59,14 @@ def update_peers_info(peer)
 			peer["region"]=geo_info.region
 			peer["city"]=geo_info.city_name
 			begin
-				req="insert into #{$p2p_peer_state_table} values (\"#{peer["webrtc_id"]}\",\"#{peer["channel_id"]}\",\"#{peer["gg_id"]}\",#{peer["timestamp"]}, INET_ATON(#{peer["ip"]}),INET_ATON(#{peer["network"]}),INET_ATON(#{peer["netmask"]}),#{peer["asn"]},\"#{peer["country"]}\",\"#{peer["region"]}\",\"#{peer["city"]}\");"
-				res=$p2p_db.query(req)
+				req="insert into #{$p2p_db_state_table} values (\"#{peer["webrtc_id"]}\",\"#{peer["channel_id"]}\",\"#{peer["gg_id"]}\",#{peer["timestamp"]}, INET_ATON(#{peer["ip"]}),INET_ATON(#{peer["network"]}),INET_ATON(#{peer["netmask"]}),#{peer["asn"]},\"#{peer["country"]}\",\"#{peer["region"]}\",\"#{peer["city"]}\");"
+				res=$p2p_db_client.query(req)
 				return true
 			rescue  => e
-				STDERR.puts "Error in DB insert for #{peer["webrtc_id"]}"
-				STDERR.puts e.to_s
-				STDERR.puts req
-				STDERR.puts peer
+				$err_logger.error "Error in DB insert for #{peer["webrtc_id"]}"
+				$err_logger.error e.to_s
+				$err_logger.error req
+				$err_logger.error peer
 				return false
 			end
 		end
@@ -104,18 +107,18 @@ def get_aton_info aton
     return info_result
 end
 
-webrtc_raw_peers_cursor = webrtc_raw_peers.find({unchecked: 1}, cursor_type: :tailable_await).to_enum
+webrtc_raw_peers_cursor = $webrtc_raw_peers.find({unchecked: 1}, cursor_type: :tailable_await).to_enum
 
 while true
 	if webrtc_raw_peers_cursor.any?
 		raw_peer = webrtc_raw_peers_cursor.next
-		puts raw_peer["webrtc_id"]
+		$out_logger.info "webrtc_id #{raw_peer["webrtc_id"]}; channel_id #{raw_peer["channel_id"]}"
 		if update_peers_info(raw_peer)
 			begin
-				webrtc_raw_peers.update_one({webrtc_id: raw_peer["webrtc_id"]},{"$set":{unchecked: 0}})
+				$webrtc_raw_peers.update_one({webrtc_id: raw_peer["webrtc_id"]},{"$set":{unchecked: 0}})
 			rescue => e
-				STDERR.puts "Error while setting checked flag to #{raw_peer["webrtc_id"]}"
-				STDERR.puts e.to_s
+				$err_logger.error "Error while setting checked flag to #{raw_peer["webrtc_id"]}"
+				$err_logger.error e.to_s
 			end
 		end
 	end
