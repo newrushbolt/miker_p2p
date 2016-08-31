@@ -45,65 +45,75 @@ def update_peers_info(peer)
 				 $err_logger.error peer.to_s
 				 return false
 			end
-			begin
-				geo_info=GeoIP.new('GeoLiteCity.dat').city(peer["ip"])
-			rescue => e
-				$err_logger.error "Error in GeoIP for #{peer["ip"]}"
-				$err_logger.error peer.to_s				
-				$err_logger.error e.to_s
-				return false
-			end
+			bnch=Benchmark.measure{
+				begin
+					geo_info=GeoIP.new('GeoLiteCity.dat').city(peer["ip"])
+				rescue => e
+					$err_logger.error "Error in GeoIP for #{peer["ip"]}"
+					$err_logger.error peer.to_s				
+					$err_logger.error e.to_s
+					return false
+				end
+			}
+			$out_logger.info("geo_info(#{aton}) got #{bnch.real}")
 			peer["network"]=aton_info[:network]
 			peer["asn"]=aton_info[:asn].nil? ? 0 : aton_info[:asn]
 			peer["netname"]=aton_info[:netname]
 			peer["geo_country"]=geo_info.country_code3
 			peer["geo_city"]=geo_info.city_name
-			begin
-				req="insert into #{$peer_state_table} values (\"#{peer["webrtc_id"]}\",\"#{peer["channel_id"]}\", \"#{peer["ip"]}\",#{peer["timestamp"]},\"#{peer["network"]}\",\"#{peer["netname"]}\",#{peer["asn"]},\"#{peer["geo_country"]}\",\"#{peer["geo_city"]}\");"
-				res=$peer_db.execute(req)
-				return true
-			rescue  => e
-				$err_logger.error "Error in DB insert for #{peer["ip"]}"
-				$err_logger.error e.to_s
-				$err_logger.error req
-				$err_logger.error peer.to_s
-				return false
-			end
+			bnch=Benchmark.measure{
+				begin
+					req="insert into #{$peer_state_table} values (\"#{peer["webrtc_id"]}\",\"#{peer["channel_id"]}\", \"#{peer["ip"]}\",#{peer["timestamp"]},\"#{peer["network"]}\",\"#{peer["netname"]}\",#{peer["asn"]},\"#{peer["geo_country"]}\",\"#{peer["geo_city"]}\");"
+					res=$peer_db.execute(req)
+					return true
+				rescue  => e
+					$err_logger.error "Error in DB insert for #{peer["ip"]}"
+					$err_logger.error e.to_s
+					$err_logger.error req
+					$err_logger.error peer.to_s
+					return false
+				end
+			}
+			$out_logger.info("update SQL info for(#{peer["webrtc_id"]}) got #{bnch.real}")
 		end
 #	end
 end
 
-def get_aton_info aton
-    info_result = {}
-    whois_client = Whois::Client.new
-    begin
-		aton_ip=IPAddr.new(aton)
-        whois_result= whois_client.lookup(aton).to_s
-    rescue  => e
-        $err_logger.error "Error while geting #{aton} info"
-        $err_logger.error e.to_s
-        return nil
-    end
-    if whois_result and 
-        whois_result.split("\n").each do |whois_result_line|
-            if whois_result_line.start_with?("origin")
-                info_result[:asn]=whois_result_line.gsub(/^origin\:[w| ]*(AS|as|As|aS)/, "")
-            end
-            if whois_result_line.start_with?("CIDR")
-                info_result[:network]=whois_result_line.gsub(/^CIDR\:[w| ]*/, "")
-            end
-            if whois_result_line.start_with?("netname")
-                info_result[:netname]=whois_result_line.gsub(/^netname\:[w| ]*/, "")
-            end
-            if whois_result_line.start_with?("NetName")
-                info_result[:netname]=whois_result_line.gsub(/^NetName\:[w| ]*/, "")
-            end
-			if whois_result_line.start_with?("route")
-                info_result[:network]=whois_result_line.gsub(/^route\:[w| ]*/, "")
-            end
-        end
-    end
-    return info_result
+def get_aton_info(aton)
+	bnch=Benchmark.measure{
+		info_result = {}
+		whois_client = Whois::Client.new
+		begin
+			aton_ip=IPAddr.new(aton)
+			puts Benchmark.realtime{
+			whois_result= whois_client.lookup(aton).to_s
+		rescue  => e
+			$err_logger.error "Error while geting #{aton} info"
+			$err_logger.error e.to_s
+			return nil
+		end
+		if whois_result and 
+			whois_result.split("\n").each do |whois_result_line|
+				if whois_result_line.start_with?("origin")
+					info_result[:asn]=whois_result_line.gsub(/^origin\:[w| ]*(AS|as|As|aS)/, "")
+				end
+				if whois_result_line.start_with?("CIDR")
+					info_result[:network]=whois_result_line.gsub(/^CIDR\:[w| ]*/, "")
+				end
+				if whois_result_line.start_with?("netname")
+					info_result[:netname]=whois_result_line.gsub(/^netname\:[w| ]*/, "")
+				end
+				if whois_result_line.start_with?("NetName")
+					info_result[:netname]=whois_result_line.gsub(/^NetName\:[w| ]*/, "")
+				end
+				if whois_result_line.start_with?("route")
+					info_result[:network]=whois_result_line.gsub(/^route\:[w| ]*/, "")
+				end
+			end
+		end
+		return info_result
+	}
+	$out_logger.info("get_aton_info(#{aton}) got #{bnch.real}")
 end
 
 webrtc_raw_peers_cursor = webrtc_raw_peers.find({unchecked: 1}, cursor_type: :tailable_await).to_enum
