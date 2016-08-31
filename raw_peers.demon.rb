@@ -20,6 +20,7 @@ webrtc_raw_peers=mongo_client[:raw_peers]
 
 def update_peers_info(peer)
 #	peers.each do |peer|
+		res=nil
 		bnch=Benchmark.measure{
 			begin
 				req="select * from #{$peer_state_table} where webrtc_id = \"#{peer["webrtc_id"]}\" and channel_id= \"#{peer["channel_id"]}\""
@@ -33,6 +34,7 @@ def update_peers_info(peer)
 		}
 		$out_logger.info("Getting peer info got #{bnch.real}")
 		if res.any?
+			res=nil
 			bnch=Benchmark.measure{
 				begin
 					req="update #{$peer_state_table} set last_online = \"#{peer["timestamp"]}\" where webrtc_id= \"#{peer["webrtc_id"]}\" and channel_id= \"#{peer["channel_id"]}\";"
@@ -47,6 +49,7 @@ def update_peers_info(peer)
 			}
 			$out_logger.info("Upating peer timestamp got #{bnch.real}")
 		else
+			aton_info=nil
 			bnch=Benchmark.measure{
 				aton_info=get_aton_info(peer["ip"])
 			}
@@ -56,6 +59,7 @@ def update_peers_info(peer)
 				 $err_logger.error(peer.to_s)
 				 return false
 			end
+			geo_info=nil
 			bnch=Benchmark.measure{
 				begin
 					geo_info=GeoIP.new('GeoLiteCity.dat').city(peer["ip"])
@@ -72,6 +76,7 @@ def update_peers_info(peer)
 			peer["netname"]=aton_info[:netname]
 			peer["geo_country"]=geo_info.country_code3
 			peer["geo_city"]=geo_info.city_name
+			res=nil
 			bnch=Benchmark.measure{
 				begin
 					req="insert into #{$peer_state_table} values (\"#{peer["webrtc_id"]}\",\"#{peer["channel_id"]}\", \"#{peer["ip"]}\",#{peer["timestamp"]},\"#{peer["network"]}\",\"#{peer["netname"]}\",#{peer["asn"]},\"#{peer["geo_country"]}\",\"#{peer["geo_city"]}\");"
