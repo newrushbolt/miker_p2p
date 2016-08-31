@@ -17,5 +17,3 @@ puts 'Offline'
 puts webrtc_raw_peers.find({offline: true}).count();
 puts 'Total'
 puts webrtc_raw_peers.find().count()
-puts 'Stats'
-puts webrtc_raw_peers.stats()
