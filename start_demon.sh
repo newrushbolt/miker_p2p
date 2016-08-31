@@ -2,9 +2,9 @@
 
 mkdir log
 
-if [ -f log/.lock ]; then
+if [ -f log/demon.lock ]; then
     echo 'Already running'
 else
     ruby raw_peers.demon.rb&
-    touch log/.lock
+    touch log/demon.lock
 fi
