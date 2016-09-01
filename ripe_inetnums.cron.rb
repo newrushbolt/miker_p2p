@@ -21,7 +21,14 @@ end
 def parse_ripe_latest_db
 	inetnums=[]
 	begin
-		data_raw=File.read('data\routes')
+		data_raw=File.read("#{$ripe_db_dir}/latest_routes")
+#File format, maybe pre-parse them harder
+# route:          193.254.30.0/24
+# origin:         AS12726
+# route:          212.166.64.0/19
+# origin:         AS12321
+# route:          212.80.191.0/24
+# origin:         AS12541
 	rescue => e
 		puts e.to_s
 	end
