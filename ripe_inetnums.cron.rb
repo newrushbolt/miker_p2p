@@ -26,7 +26,15 @@ def parse_ripe_latest_db
 	data.split("\n").each do |unit|
 		line={}
 		ip=IPAddr.new(unit.split(",")[0])
-		line["asn"]=unit.split(",")[1].gsub("AS","")
+#		puts unit.split(",")[1]
+		begin
+			line["asn"]=unit.split(",")[1].gsub(/\D/,"")
+		rescue => e
+			puts e.to_s
+			puts unit
+			exit
+		end
+#		puts line["asn"]
 		line["netmask"]=ip.inspect.gsub(/^\#.*\//,"").delete(">")
 		line["network"]=ip.to_s
 		inetnums.push(line)
@@ -36,6 +44,11 @@ end
 
 inetnums=parse_ripe_latest_db
 inetnums.each do |inetnum|
-	req="insert ignore into #{$p2p_db_inetnums_table} values (inet_aton(\"#{inetnum["network"]}\"),inet_aton(\"#{inetnum["network"]}\"),#{inetnum["asn"]});"
-	res=$p2p_db_client.query(req)
+	begin
+		req="insert ignore into #{$p2p_db_inetnums_table} values (inet_aton(\"#{inetnum["network"]}\"),inet_aton(\"#{inetnum["netmask"]}\"),#{inetnum["asn"]});"
+		res=$p2p_db_client.query(req)
+	rescue => e
+		puts e.to_s
+		puts req
+	end
 end
