@@ -8,7 +8,11 @@ $p2p_db_fastinetnums_table='fast_inetnums'
 
 $mongo_url='mongodb://127.0.0.1:3303/webrtc'
 
-$ripe_db_dir='data/ripe'
+$rr_urls=['ftp://ftp.ripe.net/ripe/dbase/split/ripe.db.route.gz',
+'ftp://ftp.arin.net/pub/rr/arin.db',
+'ftp://ftp.apnic.net/public/apnic/whois/apnic.db.route.gz',
+'ftp://ftp.afrinic.net/dbase/afrinic.db.gz']
+
 
 #May need it later
 #$ripe_prefix_url='https://stat.ripe.net/data/announced-prefixes/data.json?'
