@@ -4,12 +4,14 @@ require 'mysql2'
 require 'mongo'
 require 'json'
 
+$err_logger=Logger.new("#{$log_dir}/make_peer_list.lib.err.log")
+
 
 def make_peer_list(args)
 
 	if args.count <3
-		STDERR.puts 'Peer ID, channel ID and neighbors count needed, like this:'
-		STDERR.puts '>make_peer_list.worker.rb 8ecdc46f-1723-4474-b5ec-145e178cfb82 1231fsa2 10'
+		$err_logger.error 'Peer ID, channel ID and neighbors count needed, like this:'
+		$err_logger.error '>make_peer_list.worker.rb 8ecdc46f-1723-4474-b5ec-145e178cfb82 1231fsa2 10'
 		exit 1
 	end
 
@@ -30,29 +32,29 @@ def make_peer_list(args)
 		req="select count(webrtc_id) as webrtc_count from #{$p2p_db_state_table} where webrtc_id <> \"#{$current_peer["webrtc_id"]}\" and channel_id = \"#{$current_peer["channel_id"]}\";"
 		res=$p2p_db_client.query(req)
 	rescue => e
-		STDERR.puts "Error while counting peers in DB"
-		STDERR.puts e.to_s
+		$err_logger.error "Error while counting peers in DB"
+		$err_logger.error e.to_s
 	end
 	if res.first["webrtc_count"] < $peers_required
 		$peers_lack=true
-		STDERR.puts "DB doesn't contain enought peers"
+		$err_logger.error "DB doesn't contain enought peers"
 	end
 	
 	begin
 		req="select webrtc_id,channel_id,gg_id,last_update,inet_ntoa(ip) as ip,inet_ntoa(network) as network,inet_ntoa(netmask) as netmask,asn,country,region from #{$p2p_db_state_table} where webrtc_id = \"#{$current_peer["webrtc_id"]}\";"
 		res=$p2p_db_client.query(req)
 	rescue => e
-		STDERR.puts "Error while geting peer info"
-		STDERR.puts e.to_s
+		$err_logger.error "Error while geting peer info"
+		$err_logger.error e.to_s
 	end
 	
-	res_cnt=0
-	res.each {res_cnt+=1}
-	if res_cnt == 0
+	if res.count == 0
 		$return_data={"Error" => "Doesn't have this peer info (yet?)"}
+		$err_logger.error res.to_h	
 		return JSON.generate($return_data)
 	elsif
 		$return_data["Warning"]="DB contains several this peers, need to cleanup|fix"
+		$err_logger.error res.to_h
 		return JSON.generate($return_data)
 	end
 		
@@ -135,8 +137,8 @@ def get_random_peers(peer_count)
 	req="select webrtc_id from #{$p2p_db_state_table} where channel_id = \"#{$current_peer["channel_id"]}\" and webrtc_id <> \"#{$current_peer["webrtc_id"]}\" limit #{peer_count};"		
 	res=$p2p_db_client.query(req)
     rescue => e
-        STDERR.puts "Error while geting peers for channel #{$current_peer["channel_id"]}"
-        STDERR.puts e.to_s
+        $err_logger.error "Error while geting peers for channel #{$current_peer["channel_id"]}"
+        $err_logger.error e.to_s
         return nil
     end
 	return res
@@ -147,8 +149,8 @@ def get_network_peers(peer_count)
 		req="select webrtc_id from #{$p2p_db_state_table} where network=inet_aton(\"#{$current_peer["network"]}\") and netmask=inet_aton(\"#{$current_peer["netmask"]}\") and channel_id = \"#{$current_peer["channel_id"]}\" and webrtc_id <> \"#{$current_peer["webrtc_id"]}\" limit #{peer_count};"
 		res=$p2p_db_client.query(req)
     rescue  => e
-        STDERR.puts "Error while geting network peers"
-        STDERR.puts e.to_s
+        $err_logger.error "Error while geting network peers"
+        $err_logger.error e.to_s
         return nil
     end
 	return res
@@ -159,8 +161,8 @@ def get_asn_peers(peer_count)
 		req="select webrtc_id from #{$p2p_db_state_table} where asn=#{$current_peer["asn"]} and network<>inet_aton(\"#{$current_peer["network"]}\") and netmask<>inet_aton(\"#{$current_peer["netmask"]}\") and channel_id = \"#{$current_peer["channel_id"]}\" and webrtc_id <> \"#{$current_peer["webrtc_id"]}\" limit #{peer_count};"
 		res=$p2p_db_client.query(req)
     rescue  => e
-        STDERR.puts "Error while geting ASN peers"
-        STDERR.puts e.to_s
+        $err_logger.error "Error while geting ASN peers"
+        $err_logger.error e.to_s
         return nil
     end
 	return res
@@ -171,8 +173,8 @@ def get_city_peers(peer_count)
 		req="select webrtc_id from #{$p2p_db_state_table} where city=\"#{$current_peer["city"]}\" and asn<>#{$current_peer["asn"]} and network<>inet_aton(\"#{$current_peer["network"]}\") and netmask<>inet_aton(\"#{$current_peer["netmask"]}\") and channel_id = \"#{$current_peer["channel_id"]}\" and webrtc_id <> \"#{$current_peer["webrtc_id"]}\" limit #{peer_count};"
 		res=$p2p_db_client.query(req)
     rescue  => e
-        STDERR.puts "Error while geting city peers"
-        STDERR.puts e.to_s
+        $err_logger.error "Error while geting city peers"
+        $err_logger.error e.to_s
         return nil
     end
 	return res
