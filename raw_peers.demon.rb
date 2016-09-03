@@ -56,7 +56,7 @@ def update_peers_info(peer)
 			peer["asn"]=aton_info[:asn].nil? ? 0 : aton_info[:asn]
 			peer["netname"]=aton_info[:netname]
 			peer["country"]=geo_info.country_code3
-			peer["region"]=geo_info.region
+			peer["region"]=geo_info.real_region_name
 			peer["city"]=geo_info.city_name
 			begin
 				req="insert into #{$p2p_db_state_table} values (\"#{peer["webrtc_id"]}\",\"#{peer["channel_id"]}\",\"#{peer["gg_id"]}\",#{peer["timestamp"]}, INET_ATON(#{peer["ip"]}),INET_ATON(#{peer["network"]}),INET_ATON(#{peer["netmask"]}),#{peer["asn"]},\"#{peer["country"]}\",\"#{peer["region"]}\",\"#{peer["city"]}\");"
@@ -70,8 +70,6 @@ def update_peers_info(peer)
 				return false
 			end
 		end
-#	end
-	raise 'fck'
 end
 
 def get_aton_info(aton)
