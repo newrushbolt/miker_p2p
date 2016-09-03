@@ -31,7 +31,8 @@ rvm --default use 2.2
 gem install rest-client mysql2 whois json geoip mongo logger sinatra thin libmysqlclient-dev
 
 ###MySQL init
+service mysql restart
 mysql -uroot -pwb5nv6d8 p2p < p2p.sql
 ###Mongo init
-service start mongo
+service restart mongo
 mongo 127.0.0.1:3303/webrtc mongo_init.js
