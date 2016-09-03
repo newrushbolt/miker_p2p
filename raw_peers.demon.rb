@@ -94,10 +94,10 @@ def get_aton_info(aton)
     if whois_result and 
         whois_result.split("\n").each do |whois_result_line|
             if whois_result_line.start_with?("origin")
-                info_result[:asn]=whois_result_line.gsub(/^origin\:[w| ]*(AS|as|As|aS)/, "")
+                info_result["asn"]=whois_result_line.gsub(/^origin\:[w| ]*(AS|as|As|aS)/, "")
             end
             if whois_result_line.start_with?("CIDR")
-                info_result[:network]=whois_result_line.gsub(/^CIDR\:[w| ]*/, "")
+                info_result["network"]=whois_result_line.gsub(/^CIDR\:[w| ]*/, "")
             end
 			if whois_result_line.start_with?("route")
 				ip_obj=IPAddr.new(whois_result_line.gsub(/^route\:[w| ]*/, ""))
