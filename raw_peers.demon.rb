@@ -54,7 +54,7 @@ def update_peers_info(peer)
 				$err_logger.error e.to_s
 				return false
 			end
-			if ! (geo_info.country_code3 and ageo_info.real_region_name and geo_info.city_name)
+			if ! (geo_info.country_code3 and geo_info.real_region_name and geo_info.city_name)
 				 $err_logger.error "GeoIP info for #{peer["ip"]} doesn't have enought info"
 				 $err_logger.error aton_info.to_s
 			end
