@@ -50,11 +50,11 @@ def make_peer_list(args)
 	
 	if res.count == 0
 		$return_data={"Error" => "Doesn't have this peer info (yet?)"}
-		$err_logger.error res.to_h	
+		$err_logger.error res.to_h.to_s	
 		return JSON.generate($return_data)
 	elsif
 		$return_data["Warning"]="DB contains several this peers, need to cleanup|fix"
-		$err_logger.error res.to_h
+		$err_logger.error res.to_h.to_s
 		return JSON.generate($return_data)
 	end
 		
