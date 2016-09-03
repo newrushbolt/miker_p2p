@@ -9,7 +9,7 @@ require 'geoip'
 require 'mongo'
 require 'benchmark' 
 
-$p2p_db_client=Mysql2::Client.new(:host => $p2p_db_client_host, :database => $p2p_db, :username => $p2p_db_client_user, :password => $p2p_db_client_pass)
+$p2p_db_client=Mysql2::Client.new(:host => $p2p_db_host, :database => $p2p_db, :username => $p2p_db_user, :password => $p2p_db_pass)
 
 $out_logger=Logger.new("#{$log_dir}/out.log")
 $err_logger=Logger.new("#{$log_dir}/err.log")
