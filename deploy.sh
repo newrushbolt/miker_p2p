@@ -21,7 +21,7 @@
 #Debian block
 #apt-get update
 #apt-get install mongodb curl gzip sqlite3 ruby rubygems
-gem install rest-client mysql2 whois json geoip mongo logger
+gem install rest-client mysql2 whois json geoip mongo logger sinatra thin
 
 ###MySQL init
 mysql -uroot -pwb5nv6d8 p2p < p2p.sql

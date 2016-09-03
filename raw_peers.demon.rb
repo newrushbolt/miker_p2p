@@ -7,6 +7,7 @@ require 'whois'
 require 'json'
 require 'geoip'
 require 'mongo'
+require 'benchmark' 
 
 $p2p_db_client=Mysql2::Client.new(:host => $p2p_db_client_host, :database => $p2p_db, :username => $p2p_db_client_user, :password => $p2p_db_client_pass)
 
@@ -74,15 +75,15 @@ def update_peers_info(peer)
 	raise 'fck'
 end
 
-def get_aton_info aton
+def get_aton_info(aton)
     info_result = {}
     whois_client = Whois::Client.new
     begin
 		aton_ip=IPAddr.new(aton)
         whois_result= whois_client.lookup(aton).to_s
     rescue  => e
-        puts "Error while geting #{aton} info"
-        puts e.to_s
+        $err_logger.error "Error while geting #{aton} info"
+        $err_logger.error e.to_s
         return nil
     end
     if whois_result and 
