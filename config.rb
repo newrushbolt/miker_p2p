@@ -1,3 +1,5 @@
+$log_dir='log'
+
 $p2p_db='p2p'
 $p2p_db_host='localhost'
 $p2p_db_user='root'
