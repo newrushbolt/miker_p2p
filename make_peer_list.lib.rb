@@ -47,16 +47,23 @@ def make_peer_list(args)
 		$err_logger.error "Error while geting peer info"
 		$err_logger.error e.to_s
 	end
-	
-	if res.count == 0
+
+	if ! res.any?
 		$return_data={"Error" => "Doesn't have this peer info (yet?)"}
-		$err_logger.error res.to_h.to_s	
-		return JSON.generate($return_data)
-	elsif
-		$return_data["Warning"]="DB contains several this peers, need to cleanup|fix"
-		$err_logger.error res.to_h.to_s
+		$err_logger.error res.each
 		return JSON.generate($return_data)
 	end
+
+	#Need to deal with enum items counting,later
+	# if res.count == 0
+		# $return_data={"Error" => "Doesn't have this peer info (yet?)"}
+		# $err_logger.error res.each
+		# return JSON.generate($return_data)
+	# elsif
+		# $return_data["Warning"]="DB contains several this peers, need to cleanup|fix"
+		# $err_logger.error res.each
+		# return JSON.generate($return_data)
+	# end
 		
 	peer_res=res.first
 	$current_peer["ip"]=peer_res["ip"]
@@ -71,7 +78,7 @@ def make_peer_list(args)
 	network_peers=get_network_peers($peers_left)
 	if network_peers.any?
 		network_peers.each do |network_peer|
-			peer_line=[network_peer[0],"network"]
+			peer_line=[network_peer["webrtc_id"],"network"]
 			$return_data["peer_list"].push(peer_line)
 		end
 	end
@@ -82,7 +89,7 @@ def make_peer_list(args)
 	asn_peers=get_asn_peers($peers_left)
 	if asn_peers.any?
 		asn_peers.each do |asn_peer|
-			peer_line=[asn_peer[0],"asn"]
+			peer_line=[asn_peer["webrtc_id"],"asn"]
 			$return_data["peer_list"].push(peer_line)
 		end
 	end
@@ -93,7 +100,7 @@ def make_peer_list(args)
 	city_peers=get_city_peers($peers_left)
 	if city_peers.any?
 		city_peers.each do |city_peer|
-			peer_line=[city_peer[0],"city"]
+			peer_line=[city_peer["webrtc_id"],"city"]
 			$return_data["peer_list"].push(peer_line)
 		end
 	end
@@ -104,7 +111,7 @@ def make_peer_list(args)
 	random_peers=get_random_peers($peers_left)
 	if random_peers.any?
 		random_peers.each do |random_peer|
-			peer_line=[random_peer[0],"random"]
+			peer_line=[random_peer["webrtc_id"],"random"]
 			$return_data["peer_list"].push(peer_line)
 		end
 	end
