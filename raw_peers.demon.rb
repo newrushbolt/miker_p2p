@@ -67,7 +67,7 @@ def update_peers_info(peer)
 			peer["region"]=geo_info.real_region_name
 			peer["city"]=geo_info.city_name
 			begin
-				req="insert into #{$p2p_db_state_table} values (\"#{peer["webrtc_id"]}\",\"#{peer["channel_id"]}\",\"#{peer["gg_id"]}\",#{peer["timestamp"]}, INET_ATON(#{peer["ip"]}),INET_ATON(#{peer["network"]}),INET_ATON(#{peer["netmask"]}),#{peer["asn"]},\"#{peer["country"]}\",\"#{peer["region"]}\",\"#{peer["city"]}\");"
+				req="insert into #{$p2p_db_state_table} values (\"#{peer["webrtc_id"]}\",\"#{peer["channel_id"]}\",\"#{peer["gg_id"]}\",#{peer["timestamp"]}, INET_ATON(\"#{peer["ip"]}\"),INET_ATON(\"#{peer["network"]}\"),INET_ATON(\"#{peer["netmask"]}\"),#{peer["asn"]},\"#{peer["country"]}\",\"#{peer["region"]}\",\"#{peer["city"]}\");"
 				res=$p2p_db_client.query(req)
 				return true
 			rescue  => e
