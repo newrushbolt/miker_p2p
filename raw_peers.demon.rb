@@ -41,9 +41,12 @@ def update_peers_info(peer)
 			end
 		else
 			aton_info=get_aton_info(peer["ip"])
-			if aton_info.nil?
-				 $err_logger.error "Error in RIPE for #{peer["ip"]}"
+			if ! (aton_info["network"] and aton_info["netmask"] and aton_info["asn"])
+				 $err_logger.error "IP info for #{peer["ip"]} doesn't have enought info"
+				 $err_logger.error aton_info.to_s
+				 return false
 			end
+			
 			begin
 				geo_info=GeoIP.new('GeoLiteCity.dat').city(peer["ip"])
 			rescue  => e
@@ -51,10 +54,15 @@ def update_peers_info(peer)
 				$err_logger.error e.to_s
 				return false
 			end
-			peer["network"]=aton_info[:network]
-			peer["netmask"]=aton_info[:netmask]
-			peer["asn"]=aton_info[:asn].nil? ? 0 : aton_info[:asn]
-			peer["netname"]=aton_info[:netname]
+			if ! (geo_info.country_code3 and ageo_info.real_region_name and geo_info.city_name)
+				 $err_logger.error "GeoIP info for #{peer["ip"]} doesn't have enought info"
+				 $err_logger.error aton_info.to_s
+			end
+			
+			peer["network"]=aton_info["network"]
+			peer["netmask"]=aton_info["netmask"]
+			peer["asn"]=aton_info["asn"]
+			peer["netname"]=aton_info["netname"]
 			peer["country"]=geo_info.country_code3
 			peer["region"]=geo_info.real_region_name
 			peer["city"]=geo_info.city_name
@@ -91,14 +99,10 @@ def get_aton_info(aton)
             if whois_result_line.start_with?("CIDR")
                 info_result[:network]=whois_result_line.gsub(/^CIDR\:[w| ]*/, "")
             end
-            if whois_result_line.start_with?("netname")
-                info_result[:netname]=whois_result_line.gsub(/^netname\:[w| ]*/, "")
-            end
-            if whois_result_line.start_with?("NetName")
-                info_result[:netname]=whois_result_line.gsub(/^NetName\:[w| ]*/, "")
-            end
 			if whois_result_line.start_with?("route")
-                info_result[:network]=whois_result_line.gsub(/^route\:[w| ]*/, "")
+				ip_obj=IPAddr.new((whois_result_line.gsub(/^route\:[w| ]*/, ""))
+				info_result["network"]=ip_obj.to_s
+				info_result["netmask"]=ip_obj.inspect.gsub(/^\#.*\//,"").delete(">")
             end
         end
     end
