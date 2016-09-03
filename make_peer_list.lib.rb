@@ -1,21 +1,23 @@
 require "#{Dir.pwd}/config.rb"
 require 'rubygems'
 require 'mysql2'
+require 'mongo'
 require 'json'
+
 
 def make_peer_list(args)
 
-	if ARGV.count <3
+	if args.count <3
 		STDERR.puts 'Peer ID, channel ID and neighbors count needed, like this:'
 		STDERR.puts '>make_peer_list.worker.rb 8ecdc46f-1723-4474-b5ec-145e178cfb82 1231fsa2 10'
 		exit 1
 	end
 
 	$current_peer={}
-	$current_peer["channel_id"]=ARGV[1]
+	$current_peer["webrtc_id"]=args[0]
+	$current_peer["channel_id"]=args[1]
 	$return_data={"webrtc_id" => $current_peer["webrtc_id"], "channel_id" => $current_peer["channel_id"],"peer_list" => []}
-	$peers_required=ARGV[2].to_i
-	$peers_lack=false
+	$peers_required=args[2].to_i
 	$peers_left=$peers_required
 
 	Mongo::Logger.logger.level = Logger::WARN
@@ -31,7 +33,7 @@ def make_peer_list(args)
 		STDERR.puts "Error while counting peers in DB"
 		STDERR.puts e.to_s
 	end
-	if res[0]["webrtc_count"] < $peers_required
+	if res.first["webrtc_count"] < $peers_required
 		$peers_lack=true
 		STDERR.puts "DB doesn't contain enought peers"
 	end
@@ -45,8 +47,8 @@ def make_peer_list(args)
 	end
 	
 	res_cnt=0
-	res.each do {cnt+=1}
-	if cnt == 0
+	res.each {res_cnt+=1}
+	if res_cnt == 0
 		$return_data={"Error" => "Doesn't have this peer info (yet?)"}
 		return JSON.generate($return_data)
 	elsif
@@ -54,14 +56,15 @@ def make_peer_list(args)
 		return JSON.generate($return_data)
 	end
 		
-	$current_peer["ip"]=res[0]["ip"]
-	$current_peer["network"]=res[0]["network"]
-	$current_peer["netmask"]=res[0]["netmask"]
-	$current_peer["last_online"]=res[0]["last_online"]
-	$current_peer["asn"]=res[0]["asn"]
-	$current_peer["country"]=res[0]["country"]
-	$current_peer["city"]=res[0]["city"]
-	$current_peer["region"]=res[0]["region"]
+	peer_res=res.first
+	$current_peer["ip"]=peer_res["ip"]
+	$current_peer["network"]=peer_res["network"]
+	$current_peer["netmask"]=peer_res["netmask"]
+	$current_peer["last_online"]=peer_res["last_online"]
+	$current_peer["asn"]=peer_res["asn"]
+	$current_peer["country"]=peer_res["country"]
+	$current_peer["city"]=peer_res["city"]
+	$current_peer["region"]=peer_res["region"]
 
 	network_peers=get_network_peers($peers_left)
 	if network_peers.any?

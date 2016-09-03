@@ -7,7 +7,7 @@ require 'whois'
 require 'json'
 require 'geoip'
 require 'mongo'
-require 'benchmark' 
+
 
 $p2p_db_client=Mysql2::Client.new(:host => $p2p_db_host, :database => $p2p_db, :username => $p2p_db_user, :password => $p2p_db_pass)
 
@@ -20,7 +20,7 @@ $webrtc_raw_peers=mongo_client[:raw_peers]
 
 def update_peers_info(peer)
 		begin
-			req="select * from #{$p2p_db_state_table} where webrtc_id = \"#{peer["webrtc_id"]}\" and channel_id = \"#{peer["channel_id"]}\""
+			req="select * from #{$p2p_db_state_table} where webrtc_id = \"#{peer["webrtc_id"]}\" and channel_id = \"#{peer["channel_id"]}\";"
 			res=$p2p_db_client.query(req)
 		rescue  => e
 			$err_logger.error "Error in DB request for #{peer["webrtc_id"]}"
@@ -28,7 +28,6 @@ def update_peers_info(peer)
 			$err_logger.error req
 			return false
 		end
-		puts res.to_s#
 		if res.any?
 			begin
 				req="update #{$p2p_db_state_table} set last_online = \"#{peer["timestamp"]}\" where webrtc_id= \"#{peer["webrtc_id"]}\" and channel_id = \"#{peer["channel_id"]}\";"
