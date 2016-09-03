@@ -1,4 +1,4 @@
-require "#{Dir.pwd}/make_peer_list.server_worker.rb"
+require "#{Dir.pwd}/make_peer_list.lib.rb"
 require 'sinatra'
 
 configure do
