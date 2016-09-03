@@ -20,8 +20,15 @@
 
 #Debian block
 #apt-get update
-#apt-get install mongodb curl gzip sqlite3 ruby rubygems
-gem install rest-client mysql2 whois json geoip mongo logger sinatra thin
+apt-get install mongodb curl gzip sqlite3 mysql-server mysql-client
+command curl -sSL https://rvm.io/mpapis.asc | gpg --import -
+curl -sSL https://get.rvm.io | bash -s stable
+
+source /etc/profile.d/rvm.sh
+rvm install ruby-2.2
+rvm --default use 2.2
+
+gem install rest-client mysql2 whois json geoip mongo logger sinatra thin libmysqlclient-dev
 
 ###MySQL init
 mysql -uroot -pwb5nv6d8 p2p < p2p.sql
