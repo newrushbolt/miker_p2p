@@ -100,7 +100,7 @@ def get_aton_info(aton)
                 info_result[:network]=whois_result_line.gsub(/^CIDR\:[w| ]*/, "")
             end
 			if whois_result_line.start_with?("route")
-				ip_obj=IPAddr.new((whois_result_line.gsub(/^route\:[w| ]*/, ""))
+				ip_obj=IPAddr.new(whois_result_line.gsub(/^route\:[w| ]*/, ""))
 				info_result["network"]=ip_obj.to_s
 				info_result["netmask"]=ip_obj.inspect.gsub(/^\#.*\//,"").delete(">")
             end
