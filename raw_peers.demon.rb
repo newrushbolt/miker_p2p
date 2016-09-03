@@ -29,16 +29,17 @@ def update_peers_info(peer)
 			return false
 		end
 		if res.any?
-			begin
-				req="update #{$p2p_db_state_table} set last_online = \"#{peer["timestamp"]}\" where webrtc_id= \"#{peer["webrtc_id"]}\" and channel_id = \"#{peer["channel_id"]}\";"
-				res=$p2p_db_client.query(req)	
-			rescue  => e
-				$err_logger.error "Error in DB update for #{peer["webrtc_id"]}"
-				$err_logger.error e.to_s
-				$err_logger.error req
-				$err_logger.error peer
-				return false
-			end
+		###disabled till log parse is off
+			# begin
+				# req="update #{$p2p_db_state_table} set last_update = \"#{peer["timestamp"]}\" where webrtc_id= \"#{peer["webrtc_id"]}\" and channel_id = \"#{peer["channel_id"]}\";"
+				# res=$p2p_db_client.query(req)	
+			# rescue  => e
+				# $err_logger.error "Error in DB update for #{peer["webrtc_id"]}"
+				# $err_logger.error e.to_s
+				# $err_logger.error req
+				# $err_logger.error peer
+				# return false
+			# end
 		else
 			aton_info=get_aton_info(peer["ip"])
 			if ! (aton_info["network"] and aton_info["netmask"] and aton_info["asn"])
@@ -62,10 +63,10 @@ def update_peers_info(peer)
 			peer["network"]=aton_info["network"]
 			peer["netmask"]=aton_info["netmask"]
 			peer["asn"]=aton_info["asn"]
-			peer["netname"]=aton_info["netname"]
 			peer["country"]=geo_info.country_code3
 			peer["region"]=geo_info.real_region_name
 			peer["city"]=geo_info.city_name
+			peer["timestamp"]=peer["timestamp"].to_i
 			begin
 				req="insert into #{$p2p_db_state_table} values (\"#{peer["webrtc_id"]}\",\"#{peer["channel_id"]}\",\"#{peer["gg_id"]}\",#{peer["timestamp"]}, INET_ATON(\"#{peer["ip"]}\"),INET_ATON(\"#{peer["network"]}\"),INET_ATON(\"#{peer["netmask"]}\"),#{peer["asn"]},\"#{peer["country"]}\",\"#{peer["region"]}\",\"#{peer["city"]}\");"
 				res=$p2p_db_client.query(req)
