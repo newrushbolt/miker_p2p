@@ -15,7 +15,7 @@ webrtc_raw_peers=mongo_client[:raw_peers]
 def remove_peer_from_sql(webrtc_id)
     begin
 		req="delete from #{$p2p_db_state_table} where webrtc_id = \"#{webrtc_id}\";"
-		res=$p2p_db_client.execute(req)
+		res=$p2p_db_client.query(req)
     rescue  => e
 		$out_logger.error "Error while removing peer #{webrtc_id} from SQL"
 		$out_logger.error e.to_s
@@ -24,7 +24,8 @@ end
 
 begin
 	req="select webrtc_id from #{$p2p_db_state_table};"
-	res=$p2p_db_client.execute(req)
+	puts req
+	res=$p2p_db_client.query(req)
 rescue  => e
 	$out_logger.error "Error while getting all peers"
 	$out_logger.error e.to_s
@@ -37,11 +38,11 @@ if ! all_peers.any?
 end
 
 all_peers.each do |peer|
-	webrtc_id=peer[0]
+	webrtc_id=peer["webrtc_id"]
 #	puts "Found in SQL #{webrtc_id}"
-	found_peer=webrtc_raw_peers.find({webrtc_id: "#{webrtc_id}"},{webrtc_id: 1})
+	found_peer=webrtc_raw_peers.find({webrtc_id: "#{webrtc_id}"},{webrtc_id: 1}).to_enum
 	if found_peer.any?
-	    if found_peer["offline"] == true
+	    if found_peer.first["offline"] == true
 			$out_logger.info "Removing #{webrtc_id} from SQL cause set offline in Mongo"
 			remove_peer_from_sql(webrtc_id)
 		end
