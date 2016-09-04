@@ -4,10 +4,12 @@ require 'mysql2'
 require 'mongo'
 require 'json'
 
-$err_logger=Logger.new("#{$log_dir}/make_peer_list.lib.err.log")
 
+
+$err_logger=Logger.new("#{$log_dir}/"__FILE__".err.log")
 
 def make_peer_list(args)
+	$err_logger.info 'Launched #{__FILE__}'
 
 	if args.count <3
 		$err_logger.error 'Peer ID, channel ID and neighbors count needed, like this:'

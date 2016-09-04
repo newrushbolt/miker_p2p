@@ -5,8 +5,11 @@ require 'mysql2'
 require 'json'
 require 'mongo'
 
-$p2p_db_client=Mysql2::Client.new(:host => $p2p_db_host, :database => $p2p_db, :username => $p2p_db_user, :password => $p2p_db_pass)
-$out_logger=Logger.new("#{$log_dir}/peer_cleanup.cron.out.log")
+#$p2p_db_client=Mysql2::Client.new(:host => $p2p_db_host, :database => $p2p_db, :username => $p2p_db_user, :password => $p2p_db_pass)
+$out_logger=Logger.new("#{$log_dir}/"__FILE__".out.log")
+
+puts Time.now
+puts 'Launched #{__FILE__}'
 
 Mongo::Logger.logger.level = Logger::WARN
 mongo_client = client = Mongo::Client.new($mongo_url)
@@ -24,7 +27,6 @@ end
 
 begin
 	req="select webrtc_id from #{$p2p_db_state_table};"
-	puts req
 	res=$p2p_db_client.query(req)
 rescue  => e
 	$out_logger.error "Error while getting all peers"
