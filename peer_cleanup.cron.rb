@@ -5,8 +5,9 @@ require 'mysql2'
 require 'json'
 require 'mongo'
 
-#$p2p_db_client=Mysql2::Client.new(:host => $p2p_db_host, :database => $p2p_db, :username => $p2p_db_user, :password => $p2p_db_pass)
-$out_logger=Logger.new("#{$log_dir}/"__FILE__".out.log")
+$p2p_db_client=Mysql2::Client.new(:host => $p2p_db_host, :database => $p2p_db, :username => $p2p_db_user, :password => $p2p_db_pass)
+$my_name='peer_cleanup.cron.rb'
+$out_logger=Logger.new("#{$log_dir}/#{$my_name}.out.log")
 
 puts Time.now
 puts 'Launched #{__FILE__}'

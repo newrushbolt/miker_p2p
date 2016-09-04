@@ -29,6 +29,8 @@ rvm install ruby-2.2
 rvm --default use 2.2
 
 gem install rest-client mysql2 whois json geoip mongo logger sinatra thin 
+mkdir -p var/log
+mkdir -p var/run
 
 ###MySQL init
 service mysql restart

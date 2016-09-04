@@ -1,8 +1,9 @@
 require "#{Dir.pwd}/make_peer_list.lib.rb"
 require 'sinatra'
 
-$out_logger=Logger.new("#{$log_dir}/"__FILE__".out.log")
-$out_logger.info 'Launched #{__FILE__}'
+$my_name='make_peer_list.demon.rb'
+$out_logger=Logger.new("#{$log_dir}/#{$my_name}.out.log")
+$out_logger.info "Launched #{__FILE__}"
 
 $port='3302'
 if ARGV.count > 0 and ARGV[0].to_i > 0

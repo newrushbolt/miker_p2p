@@ -1,4 +1,4 @@
-$log_dir='log'
+$log_dir='var/log'
 
 $p2p_db='p2p'
 $p2p_db_host='localhost'
