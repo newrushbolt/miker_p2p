@@ -111,7 +111,7 @@ end
 def start_worker
 	$err_logger.info "Started worker"
 	begin
-		$mongo_client = Mongo::Client.new($mongo_url, :minPoolSize => 10 , :maxPoolSize => 50)
+		$mongo_client = Mongo::Client.new($mongo_url, :min_pool_size => 10 , :max_pool_size => 50)
 		$webrtc_raw_peers=$mongo_client[:raw_peers]
 		$webrtc_raw_peers_cursor = $webrtc_raw_peers.find({unchecked: 1}, cursor_type: :tailable_await).to_enum
 	rescue => e
