@@ -61,10 +61,7 @@ $inetnums.each do |inetnum|
 	end
 end
 
-req="mysqldump --no-create-info --no-create-db #{$p2p_db_inetnums_table} -u#{$p2p_db_user} -p#{$p2p_db_pass} #{$p2p_db_fast_inetnums_table} > #{Dir.pwd}/data/inetnums.sql"
-req=system(req)
-if res == true
-	req="mysql #{$p2p_db_inetnums_table} -u#{$p2p_db_user} -p#{$p2p_db_pass} < #{Dir.pwd}/fast_inetnums.sql;mysql #{$p2p_db_inetnums_table} -u#{$p2p_db_user} -p#{$p2p_db_pass} < #{Dir.pwd}/data/inetnums.sql"
-else
-	puts 'Cannot dump'
-end
+req="insert replace into #{$p2p_db_inetnums_table} select * from #{$p2p_db_fast_inetnums_table};"
+res=$p2p_db_client.query(req)
+
+
