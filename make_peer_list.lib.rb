@@ -19,6 +19,8 @@ def make_peer_list(args)
 	$current_peer["webrtc_id"]=args[0]
 	$current_peer["channel_id"]=args[1]
 	$return_data={"webrtc_id" => $current_peer["webrtc_id"], "channel_id" => $current_peer["channel_id"],"peer_list" => []}
+	$ignored_peers=[]
+	$peers_lack=false
 	$peers_required=args[2].to_i
 	$peers_left=$peers_required
 
@@ -89,8 +91,11 @@ def make_peer_list(args)
 	asn_peers=get_asn_peers($peers_left)
 	if asn_peers.any?
 		asn_peers.each do |asn_peer|
-			peer_line=[asn_peer["webrtc_id"],"asn"]
-			$return_data["peer_list"].push(peer_line)
+			if ! ignored_peers.include?(asn_peer["webrtc_id"])
+				peer_line=[asn_peer["webrtc_id"],"asn"]
+				$return_data["peer_list"].push(peer_line)
+				ignored_peers.push(asn_peer["webrtc_id"])
+			end
 		end
 	end
 
@@ -100,8 +105,11 @@ def make_peer_list(args)
 	city_peers=get_city_peers($peers_left)
 	if city_peers.any?
 		city_peers.each do |city_peer|
-			peer_line=[city_peer["webrtc_id"],"city"]
-			$return_data["peer_list"].push(peer_line)
+			if ! ignored_peers.include?(city_peer["webrtc_id"])
+				peer_line=[city_peer["webrtc_id"],"city"]
+				$return_data["peer_list"].push(peer_line)
+				ignored_peers.push(city_peer["webrtc_id"])
+			end
 		end
 	end
 
@@ -111,8 +119,11 @@ def make_peer_list(args)
 	random_peers=get_random_peers($peers_left)
 	if random_peers.any?
 		random_peers.each do |random_peer|
-			peer_line=[random_peer["webrtc_id"],"random"]
-			$return_data["peer_list"].push(peer_line)
+			if ! ignored_peers.include?(random_peer["webrtc_id"])
+				peer_line=[random_peer["webrtc_id"],"random"]
+				$return_data["peer_list"].push(peer_line)
+				ignored_peers.push(random_peer["webrtc_id"])
+			end
 		end
 	end
 	
