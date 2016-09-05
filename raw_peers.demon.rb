@@ -26,11 +26,14 @@ def update_peers_info(peer)
 			$err_logger.error req
 			return false
 		end
+		$out_logger.debug "Base got any peer info? #{res.any?.to_s}"
 		if res.any?
+		    return true
 		###disabled till log parse is off
 			# begin
 				# req="update #{$p2p_db_state_table} set last_update = \"#{peer["timestamp"]}\" where webrtc_id= \"#{peer["webrtc_id"]}\" and channel_id = \"#{peer["channel_id"]}\";"
 				# res=$p2p_db_client.query(req)	
+				# return true
 			# rescue  => e
 				# $err_logger.error "Error in DB update for #{peer["webrtc_id"]}"
 				# $err_logger.error e.to_s
@@ -45,7 +48,6 @@ def update_peers_info(peer)
 				 $err_logger.error aton_info.to_s
 				 return false
 			end
-			
 			begin
 				geo_info=GeoIP.new('GeoLiteCity.dat').city(peer["ip"])
 			rescue  => e
@@ -57,7 +59,6 @@ def update_peers_info(peer)
 				 $err_logger.error "GeoIP info for #{peer["ip"]} doesn't have enought info"
 				 $err_logger.error aton_info.to_s
 			end
-			
 			peer["network"]=aton_info["network"]
 			peer["netmask"]=aton_info["netmask"]
 			peer["asn"]=aton_info["asn"]
@@ -133,8 +134,11 @@ def start_worker
 			if $webrtc_raw_peers_cursor.any?
 				raw_peer = $webrtc_raw_peers_cursor.next
 				$out_logger.info "webrtc_id #{raw_peer["webrtc_id"]}; channel_id #{raw_peer["channel_id"]}"
-				if update_peers_info(raw_peer)
+				up_info=update_peers_info(raw_peer)
+				$out_logger.debug "SQL peer update returned #{up_info.to_s}"
+				if up_info
 					begin
+						$out_logger.debug "$webrtc_raw_peers.update_one({webrtc_id: #{raw_peer["webrtc_id"]}},{\"$set\":{unchecked: 0}})"
 						$webrtc_raw_peers.update_one({webrtc_id: raw_peer["webrtc_id"]},{"$set":{unchecked: 0}})
 					rescue => e
 						$err_logger.error "Error while setting checked flag to #{raw_peer["webrtc_id"]}"

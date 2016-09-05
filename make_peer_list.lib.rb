@@ -93,10 +93,10 @@ def make_peer_list(args)
 	asn_peers=get_asn_peers($peers_left)
 	if asn_peers.any?
 		asn_peers.each do |asn_peer|
-			if ! ignored_peers.include?(asn_peer["webrtc_id"])
+			if ! $ignored_peers.include?(asn_peer["webrtc_id"])
 				peer_line=[asn_peer["webrtc_id"],"asn"]
 				$return_data["peer_list"].push(peer_line)
-				ignored_peers.push(asn_peer["webrtc_id"])
+				$ignored_peers.push(asn_peer["webrtc_id"])
 			end
 		end
 	end
@@ -107,10 +107,10 @@ def make_peer_list(args)
 	city_peers=get_city_peers($peers_left)
 	if city_peers.any?
 		city_peers.each do |city_peer|
-			if ! ignored_peers.include?(city_peer["webrtc_id"])
+			if ! $ignored_peers.include?(city_peer["webrtc_id"])
 				peer_line=[city_peer["webrtc_id"],"city"]
 				$return_data["peer_list"].push(peer_line)
-				ignored_peers.push(city_peer["webrtc_id"])
+				$ignored_peers.push(city_peer["webrtc_id"])
 			end
 		end
 	end
@@ -121,10 +121,10 @@ def make_peer_list(args)
 	random_peers=get_random_peers($peers_left)
 	if random_peers.any?
 		random_peers.each do |random_peer|
-			if ! ignored_peers.include?(random_peer["webrtc_id"])
+			if ! $ignored_peers.include?(random_peer["webrtc_id"])
 				peer_line=[random_peer["webrtc_id"],"random"]
 				$return_data["peer_list"].push(peer_line)
-				ignored_peers.push(random_peer["webrtc_id"])
+				$ignored_peers.push(random_peer["webrtc_id"])
 			end
 		end
 	end
