@@ -79,17 +79,20 @@ def make_peer_list(args)
 	$current_peer["city"]=peer_res["city"]
 	$current_peer["region"]=peer_res["region"]
 
+	$out_logger.debug "Network peers, ignoring: #{$ignored_peers.to_s}"
 	network_peers=get_network_peers($peers_left)
 	if network_peers.any?
 		network_peers.each do |network_peer|
 			peer_line=[network_peer["webrtc_id"],"network"]
 			$return_data["peer_list"].push(peer_line)
+			$ignored_peers.push(network_peer["webrtc_id"])
 		end
 	end
-
 	if enough_peers?
 		return JSON.generate($return_data)
 	end
+
+	$out_logger.debug "ASN peers, ignoring: #{$ignored_peers.to_s}"
 	asn_peers=get_asn_peers($peers_left)
 	if asn_peers.any?
 		asn_peers.each do |asn_peer|
@@ -100,10 +103,11 @@ def make_peer_list(args)
 			end
 		end
 	end
-
 	if enough_peers?
 		return JSON.generate($return_data)
 	end
+
+	$out_logger.debug "City peers, ignoring: #{$ignored_peers.to_s}"
 	city_peers=get_city_peers($peers_left)
 	if city_peers.any?
 		city_peers.each do |city_peer|
@@ -114,10 +118,11 @@ def make_peer_list(args)
 			end
 		end
 	end
-
 	if enough_peers?
 		return JSON.generate($return_data)
 	end
+
+	$out_logger.debug "Random peers, ignoring: #{$ignored_peers.to_s}"
 	random_peers=get_random_peers($peers_left)
 	if random_peers.any?
 		random_peers.each do |random_peer|
