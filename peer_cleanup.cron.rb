@@ -10,7 +10,7 @@ $my_name='peer_cleanup.cron.rb'
 $out_logger=Logger.new("#{$log_dir}/#{$my_name}.out.log")
 
 puts Time.now
-puts 'Launched #{__FILE__}'
+puts "Launched #{__FILE__}"
 
 Mongo::Logger.logger.level = Logger::WARN
 mongo_client = client = Mongo::Client.new($mongo_url)
