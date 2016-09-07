@@ -39,7 +39,7 @@ start() {
 	    echo -e "\033[36m ${NAME} \033[0m\t Started, PID $PID"
 	else
 	    PID=`cat $PID_FILE`
-	    if [ "`ps --pid $PID`" ] ; then
+	    if [ `ps --pid $PID >/dev/null;echo $?` -eq 0 ] ; then
 	        echo  -e "\033[36m ${NAME} \033[0m\t Already running, PID $PID"
 	    else
 	        echo  -e "\033[36m ${NAME} \033[0m\t Not running, but PID file $PID_FILE exists"
@@ -52,7 +52,7 @@ stop() {
         echo $PID_FILE
         if [ -f "$PID_FILE" ] ; then
           PID=`cat $PID_FILE`
-          if [ "`ps --pid $PID`" ] ; then
+          if [ `ps --pid $PID >/dev/null;echo $?` -eq 0 ] ; then
             echo -e "\033[36m ${NAME} \033[0m\t Killing $PID process"
             kill -TERM $PID
           else
@@ -68,7 +68,7 @@ status() {
         PID_FILE=$APPDIR/var/run/"$NAME".pid
         if [ -f "$PID_FILE" ] ; then
 	  PID=`cat $PID_FILE`
-          if [ "`ps --pid $PID`" ] ; then
+          if [ `ps --pid $PID >/dev/null;echo $?` -eq 0 ] ; then
 	    echo -e "\033[36m ${NAME} \033[0m\t Running, PID $PID"
           else
             echo -e "\033[36m ${NAME} \033[0m\t PID file $PID_FILE exists, but service is not running"

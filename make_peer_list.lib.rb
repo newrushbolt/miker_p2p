@@ -1,16 +1,5 @@
-require "#{Dir.pwd}/config.rb"
-require 'rubygems'
-require 'mysql2'
-require 'mongo'
-require 'json'
-
-
-$my_name='make_peer_list.demon.rb'
-$err_logger=Logger.new("#{$log_dir}/#{$my_name}.err.log")
 
 def make_peer_list(args)
-	$err_logger.info "Launched #{__FILE__}"
-
 	if args.count <3
 		$err_logger.error 'Peer ID, channel ID and neighbors count needed, like this:'
 		$err_logger.error '>make_peer_list.worker.rb 8ecdc46f-1723-4474-b5ec-145e178cfb82 1231fsa2 10'
@@ -26,9 +15,9 @@ def make_peer_list(args)
 	$peers_required=args[2].to_i
 	$peers_left=$peers_required
 
-	Mongo::Logger.logger.level = Logger::WARN
-	mongo_client = client = Mongo::Client.new($mongo_url)
-	$webrtc_raw_peers=mongo_client[:raw_peers]
+#	Mongo::Logger.logger.level = Logger::WARN
+#	mongo_client = client = Mongo::Client.new($mongo_url)
+#	$webrtc_raw_peers=mongo_client[:raw_peers]
 
 	$p2p_db_client=Mysql2::Client.new(:host => $p2p_db_host, :database => $p2p_db, :username => $p2p_db_user, :password => $p2p_db_pass)
 
@@ -55,6 +44,7 @@ def make_peer_list(args)
 	if ! res.any?
 		$return_data={"Error" => "Doesn't have this peer info (yet?)"}
 		$err_logger.error res.each
+		$p2p_db_client.close
 		return JSON.generate($return_data)
 	end
 
@@ -135,6 +125,7 @@ def make_peer_list(args)
 	end
 	
 	if enough_peers?
+		$p2p_db_client.close
 		return JSON.generate($return_data)
 	else
 		$return_data["Warning"]="Not enough peers grabbed"
