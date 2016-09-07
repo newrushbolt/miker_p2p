@@ -44,7 +44,7 @@ def make_peer_list(args)
 	if ! res.any?
 		$return_data={"Error" => "Doesn't have this peer info (yet?)"}
 		$err_logger.error res.each
-		$p2p_db_client.close
+		#$p2p_db_client.close
 		return JSON.generate($return_data)
 	end
 
@@ -125,7 +125,7 @@ def make_peer_list(args)
 	end
 	
 	if enough_peers?
-		$p2p_db_client.close
+		#$p2p_db_client.close
 		return JSON.generate($return_data)
 	else
 		$return_data["Warning"]="Not enough peers grabbed"
