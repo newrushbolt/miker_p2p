@@ -6,6 +6,17 @@ require 'mysql2'
 require 'logger'
 require 'json'
 require 'sinatra'
+require 'etc'
+
+if $default_user
+    begin
+        proc_user=Etc.getpwnam($default_user)
+        Process::Sys.setuid(proc_user.uid)
+    rescue => e
+        puts "Error while changing user to #{$default_user}"
+        puts e.to_s
+    end
+end
 
 $my_name='make_peer_list.demon.rb'
 

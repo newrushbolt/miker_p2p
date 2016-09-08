@@ -7,10 +7,43 @@ require 'whois'
 require 'json'
 require 'geoip'
 require 'mongo'
+require 'etc'
 
-Mongo::Logger.logger.level = Logger::WARN
+if $default_user
+    begin
+        proc_user=Etc.getpwnam($default_user)
+        Process::Sys.setuid(proc_user.uid)
+    rescue => e
+        puts "Error while changing user to #{$default_user}"
+        puts e.to_s
+    end
+end
+
 $out_logger=Logger.new("#{$log_dir}/raw_peer.demon.out.log")
 $err_logger=Logger.new("#{$log_dir}/raw_peer.demon.err.log")
+
+if ARGV[0]
+    case ARGV[0]
+    when debug
+	$out_logger.level=Loger::DEBUG
+	$err_logger.level=Loger::DEBUG
+    when info
+	$out_logger.level=Loger::INFO
+	$err_logger.level=Loger::IFNO
+    when warn
+	$out_logger.level=Loger::WARN
+	$err_logger.level=Loger::WARN
+    when error
+	$out_logger.level=Loger::ERROR
+	$err_logger.level=Loger::ERROR
+    when fatal
+	$out_logger.level=Loger::FATAL
+	$err_logger.level=Loger::FATAL
+    end
+    $out_logger.level=Loger::ERROR
+    $err_logger.level=Loger::ERROR
+end
+
 $p2p_db_client = nil
 $mongo_client = nil
 $webrtc_raw_peers= nil
@@ -112,6 +145,7 @@ end
 def start_worker
 	$err_logger.info "Started worker"
 	begin
+		Mongo::Logger.logger.level = Logger::WARN
 		$mongo_client = Mongo::Client.new($mongo_url, :min_pool_size => 10 , :max_pool_size => 50)
 		$webrtc_raw_peers=$mongo_client[:raw_peers]
 		$webrtc_raw_peers_cursor = $webrtc_raw_peers.find({unchecked: 1}, cursor_type: :tailable_await).to_enum

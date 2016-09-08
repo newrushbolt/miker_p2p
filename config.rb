@@ -1,4 +1,5 @@
 $log_dir='var/log'
+$default_user='mihailov.s'
 
 $p2p_db='p2p'
 $p2p_db_host='localhost'
