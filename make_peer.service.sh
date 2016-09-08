@@ -35,7 +35,6 @@ start() {
     for (( i = 1; i <= $WORKERS; i++ ))
     do
         PID_FILE=$APPDIR/var/run/"$NAME"_"$i".pid
-	echo $PID_FILE
 	if [ ! -f "$PID_FILE" ] ; then
             ruby "$APPDIR/$WORKER" "350$i" >> "$APPDIR"/var/log/"$NAME"_"$i".service.log 2>&1 &
 	    PID=`echo $!`
@@ -43,7 +42,7 @@ start() {
 	    echo -e "\033[36m $NAME worker $i \033[0m\t Started, PID $PID"
 	else
 	    PID=`cat $PID_FILE`
-	    if [ `ps --pid $PID >/dev/null;echo $?` -eq 0 ] ; then
+	    if [ `ps --pid $PID >/dev/null 2>/dev/null;echo $?` -eq 0 ] ; then
 	        echo  -e "\033[36m $NAME worker $i \033[0m\t Already running, PID $PID"
 	    else
 	        echo  -e "\033[36m $NAME worker $i \033[0m\t Not running, but PID file $PID_FILE exists"
@@ -56,10 +55,9 @@ stop() {
     for (( i = 1; i <= $WORKERS; i++ ))
     do
         PID_FILE=$APPDIR/var/run/"$NAME"_"$i".pid
-        echo $PID_FILE
         if [ -f "$PID_FILE" ] ; then
           PID=`cat $PID_FILE`
-          if [ `ps --pid $PID >/dev/null;echo $?` -eq 0 ] ; then
+          if [ `ps --pid $PID >/dev/null 2>/dev/null;echo $?` -eq 0 ] ; then
             echo -e "\033[36m $NAME worker $i \033[0m\t Killing $PID process"
             kill -TERM $PID
           else
@@ -78,7 +76,7 @@ status() {
         PID_FILE=$APPDIR/var/run/"$NAME"_"$i".pid
         if [ -f "$PID_FILE" ] ; then
 	  PID=`cat $PID_FILE`
-          if [ `ps --pid $PID >/dev/null;echo $?` -eq 0 ] ; then
+          if [ `ps --pid $PID >/dev/null 2>/dev/null;echo $?` -eq 0 ] ; then
 	    echo -e "\033[36m $NAME worker $i \033[0m\t Running, PID $PID"
           else
             echo -e "\033[36m $NAME worker $i \033[0m\t PID file $PID_FILE exists, but service is not running"

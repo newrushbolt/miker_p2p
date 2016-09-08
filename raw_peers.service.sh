@@ -30,8 +30,7 @@ APPDIR='/home/mihailov.s/miker_p2p'
 cd $APPDIR
 
 start() {
-        PID_FILE=$APPDIR/var/run/"$NAME".pid
-	echo $PID_FILE
+    PID_FILE=$APPDIR/var/run/"$NAME".pid
 	if [ ! -f "$PID_FILE" ] ; then
             ruby "$APPDIR/$WORKER">> "$APPDIR"/var/log/"$NAME".service.log 2>&1 &
 	    PID=`echo $!`
@@ -39,7 +38,7 @@ start() {
 	    echo -e "\033[36m ${NAME} \033[0m\t Started, PID $PID"
 	else
 	    PID=`cat $PID_FILE`
-	    if [ `ps --pid $PID >/dev/null;echo $?` -eq 0 ] ; then
+	    if [ `ps --pid $PID >/dev/null 2>/dev/null;echo $?` -eq 0 ] ; then
 	        echo  -e "\033[36m ${NAME} \033[0m\t Already running, PID $PID"
 	    else
 	        echo  -e "\033[36m ${NAME} \033[0m\t Not running, but PID file $PID_FILE exists"
@@ -49,10 +48,9 @@ start() {
 
 stop() {
         PID_FILE=$APPDIR/var/run/"$NAME".pid
-        echo $PID_FILE
         if [ -f "$PID_FILE" ] ; then
           PID=`cat $PID_FILE`
-          if [ `ps --pid $PID >/dev/null;echo $?` -eq 0 ] ; then
+          if [ `ps --pid $PID >/dev/null 2>/dev/null;echo $?` -eq 0 ] ; then
             echo -e "\033[36m ${NAME} \033[0m\t Killing $PID process"
             kill -TERM $PID
           else
@@ -68,7 +66,7 @@ status() {
         PID_FILE=$APPDIR/var/run/"$NAME".pid
         if [ -f "$PID_FILE" ] ; then
 	  PID=`cat $PID_FILE`
-          if [ `ps --pid $PID >/dev/null;echo $?` -eq 0 ] ; then
+          if [ `ps --pid $PID >/dev/null 2>/dev/null;echo $?` -eq 0 ] ; then
 	    echo -e "\033[36m ${NAME} \033[0m\t Running, PID $PID"
           else
             echo -e "\033[36m ${NAME} \033[0m\t PID file $PID_FILE exists, but service is not running"
