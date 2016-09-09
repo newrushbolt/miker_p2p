@@ -16,6 +16,7 @@ $rr_urls=['ftp://ftp.ripe.net/ripe/dbase/split/ripe.db.route.gz',
 'ftp://ftp.apnic.net/public/apnic/whois/apnic.db.route.gz',
 'ftp://ftp.afrinic.net/dbase/afrinic.db.gz']
 
+$private_nets=["10.0.0.0/8","172.16.0.0/12","192.168.0.0/16","127.0.0.0/8", "169.254.0.0/16","224.0.0.0/4","240.0.0.0/4"]
 
 #May need it later
 #$ripe_prefix_url='https://stat.ripe.net/data/announced-prefixes/data.json?'

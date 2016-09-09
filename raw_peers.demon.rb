@@ -49,6 +49,12 @@ $mongo_client = nil
 $webrtc_raw_peers= nil
 $webrtc_raw_peers_cursor= nil
 
+$private_ip_nets=[]
+$private_nets.each do |net|
+	$private_ip_nets.push(IPAddr.new(net))
+	$err_logger.debug "Loading private IP-net #{net}"
+end
+
 def update_peers_info(peer)
 		begin
 			req="select * from #{$p2p_db_state_table} where webrtc_id = \"#{peer["webrtc_id"]}\" and channel_id = \"#{peer["channel_id"]}\";"
@@ -76,8 +82,8 @@ def update_peers_info(peer)
 			# end
 		else
 			aton_info=get_aton_info(peer["ip"])
-			if ! (aton_info["network"] and aton_info["netmask"] and aton_info["asn"])
-				 $err_logger.error "IP info for #{peer["ip"]} doesn't have enought info"
+			if ! aton_info or aton_info.nil? or !(aton_info["network"] and aton_info["netmask"] and aton_info["asn"])
+				 $err_logger.error "IP info for #{peer["ip"]} doesn't have enought info, only this:"
 				 $err_logger.error aton_info.to_s
 				 return false
 			end
@@ -118,7 +124,13 @@ def get_aton_info(aton)
     info_result = {}
     whois_client = Whois::Client.new
     begin
-		aton_ip=IPAddr.new(aton)
+		IPAddr.new(aton)
+		$private_ip_nets.each do |net|
+			if net.include?(aton)
+				$err_logger.error "IP #{aton} is in private net #{net.inspect}, exiting"
+				return nil
+			end
+		end
         whois_result= whois_client.lookup(aton).to_s
     rescue  => e
         $err_logger.error "Error while geting whois info for #{aton}"
@@ -157,9 +169,15 @@ def get_aton_info(aton)
     end
 	if info_result["network"] and info_result["netmask"] and ! info_result["asn"]
 		$out_logger.debug "Got no ASN for #{aton}, trying geoip base"
-		geo_info=GeoIP.new('GeoIPASNum.dat').asn(aton)
-		asn=geo_info[:number].gsub(/^*(AS|as|As|aS)/, "").to_i
-		info_result["asn"]=asn
+		begin
+			geo_info=GeoIP.new('GeoIPASNum.dat').asn(aton)
+			asn=geo_info[:number].gsub(/^*(AS|as|As|aS)/, "").to_i
+			info_result["asn"]=asn
+		rescue  => e
+			$err_logger.error "Error in GeoIPASNum request for #{aton}"
+			$err_logger.error e.to_s
+			return false
+		end
 		$out_logger.debug "Got asn: #{asn}"
 		$out_logger.debug asn
 	end
