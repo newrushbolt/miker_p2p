@@ -2,13 +2,12 @@ require "#{Dir.pwd}/config.rb"
 require "#{Dir.pwd}/make_peer_list.lib.rb"
 require 'rubygems'
 require 'mysql2'
-#require 'mongo'
 require 'logger'
 require 'json'
 require 'sinatra'
 require 'etc'
 
-if $default_user
+if $default_user and RUBY_PLATFORM.include?('linux')
     begin
         proc_user=Etc.getpwnam($default_user)
         Process::Sys.setuid(proc_user.uid)
@@ -23,27 +22,26 @@ $my_name='make_peer_list.demon.rb'
 $out_logger=Logger.new("#{$log_dir}/#{$my_name}.out.log")
 $out_logger.info "Launched #{__FILE__}"
 $err_logger=Logger.new("#{$log_dir}/#{$my_name}.out.log")
-
+$out_logger.level=Logger::ERROR
+$err_logger.level=Logger::ERROR
 if ARGV[1]
     case ARGV[1]
     when debug
-	$out_logger.level=Loger::DEBUG
-	$err_logger.level=Loger::DEBUG
+	$out_logger.level=Logger::DEBUG
+	$err_logger.level=Logger::DEBUG
     when info
-	$out_logger.level=Loger::INFO
-	$err_logger.level=Loger::IFNO
+	$out_logger.level=Logger::INFO
+	$err_logger.level=Logger::IFNO
     when warn
-	$out_logger.level=Loger::WARN
-	$err_logger.level=Loger::WARN
+	$out_logger.level=Logger::WARN
+	$err_logger.level=Logger::WARN
     when error
-	$out_logger.level=Loger::ERROR
-	$err_logger.level=Loger::ERROR
+	$out_logger.level=Logger::ERROR
+	$err_logger.level=Logger::ERROR
     when fatal
-	$out_logger.level=Loger::FATAL
-	$err_logger.level=Loger::FATAL
+	$out_logger.level=Logger::FATAL
+	$err_logger.level=Logger::FATAL
     end
-    $out_logger.level=Loger::ERROR
-    $err_logger.level=Loger::ERROR
 end
 
 $port='3302'
