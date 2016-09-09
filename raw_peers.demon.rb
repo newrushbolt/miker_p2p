@@ -129,7 +129,7 @@ def get_aton_info(aton)
 	# $out_logger.debug whois_result
     if whois_result and 
         whois_result.split("\n").each do |whois_result_line|
-			begin-
+			begin
 				if whois_result_line.start_with?("origin")
 					$out_logger.debug "Found Origin(ASN) line:"
 					$out_logger.debug whois_result_line
