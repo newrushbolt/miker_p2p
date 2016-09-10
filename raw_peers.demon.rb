@@ -1,4 +1,4 @@
-require "#{Dir.pwd}/config.rb"
+
 require 'etc'
 require 'geoip'
 require 'json'
@@ -9,6 +9,10 @@ require 'rest-client'
 require 'rubygems'
 require 'ruby-prof'
 require 'whois'
+require "#{Dir.pwd}/config.rb"
+if $use_fast_whois_lib 
+	require $fast_whois_lib
+end
 
 if $default_user and RUBY_PLATFORM.include?('linux')
     begin
@@ -81,7 +85,12 @@ def update_peers_info(peer)
 				# return false
 			# end
 		else
-			aton_info=get_aton_info(peer["ip"])
+			if $use_fast_whois_lib 
+				aton_info=get_info(peer["ip"])
+			else
+				$err_logger.debug "Using fast_whois_lib"
+				aton_info=get_aton_info(peer["ip"])
+			end
 			if ! aton_info or aton_info.nil? or !(aton_info["network"] and aton_info["netmask"] and aton_info["asn"])
 				 $err_logger.error "IP info for #{peer["ip"]} doesn't have enought info, only this:"
 				 $err_logger.error aton_info.to_s

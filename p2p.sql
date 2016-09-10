@@ -6,9 +6,8 @@ CREATE TABLE `fast_inetnums` (
   `network` int(10) unsigned NOT NULL,
   `netmask` int(10) unsigned NOT NULL,
   `asn` int(10) unsigned NOT NULL,
-    PRIMARY KEY (`network`,`netmask`) USING BTREE,
-  UNIQUE KEY `uniq_id` (`network`,`netmask`) USING BTREE,
-  KEY `full` (`network`,`netmask`,`asn`) USING BTREE
+  PRIMARY KEY (`network`,`netmask`),
+  KEY `full` (`network`,`netmask`,`asn`)
 ) ENGINE=MEMORY DEFAULT CHARSET=utf8;
 
 DROP TABLE IF EXISTS `inetnums`;
