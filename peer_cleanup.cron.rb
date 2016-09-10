@@ -1,20 +1,31 @@
 require "#{Dir.pwd}/config.rb"
-require 'logger'
-require 'rubygems'
 require 'mysql2'
-require 'json'
 require 'mongo'
 
-$p2p_db_client=Mysql2::Client.new(:host => $p2p_db_host, :database => $p2p_db, :username => $p2p_db_user, :password => $p2p_db_pass)
-$my_name='peer_cleanup.cron.rb'
-$out_logger=Logger.new("#{$log_dir}/#{$my_name}.out.log")
-
-puts Time.now
-puts "Launched #{__FILE__}"
+$my_name='peer_cleanup.cron'
+$out_logger=Logger.new("#{$app_dir}/#{$log_dir}/#{$my_name}.log")
+$out_logger.info "Launched #{$my_name}"
+$out_logger.level=$log_level
+if ARGV[0]
+    case ARGV[0]
+    when debug
+	$out_logger.level=Logger::DEBUG
+    when info
+	$out_logger.level=Logger::IFNO
+    when warn
+	$out_logger.level=Logger::WARN
+    when error
+	$out_logger.level=Logger::ERROR
+    when fatal
+	$out_logger.level=Logger::FATAL
+    end
+end
 
 Mongo::Logger.logger.level = Logger::WARN
 mongo_client = client = Mongo::Client.new($mongo_url)
 webrtc_raw_peers=mongo_client[:raw_peers]
+
+$p2p_db_client=Mysql2::Client.new(:host => $p2p_db_host, :database => $p2p_db, :username => $p2p_db_user, :password => $p2p_db_pass)
 
 def remove_peer_from_sql(webrtc_id)
     begin
@@ -23,6 +34,7 @@ def remove_peer_from_sql(webrtc_id)
     rescue  => e
 		$out_logger.error "Error while removing peer #{webrtc_id} from SQL"
 		$out_logger.error e.to_s
+		$out_logger.error req
 	end
 end
 
@@ -30,19 +42,20 @@ begin
 	req="select webrtc_id from #{$p2p_db_state_table};"
 	res=$p2p_db_client.query(req)
 rescue  => e
-	$out_logger.error "Error while getting all peers"
+	$out_logger.error "Error while getting all peers from SQL"
 	$out_logger.error e.to_s
+	$out_logger.error req
 end
+
 
 all_peers=res
 if ! all_peers.any?
-	$out_logger.error 'No peers found in DB'
+	$out_logger.warn 'No peers found in SQL'
 	exit
 end
 
 all_peers.each do |peer|
 	webrtc_id=peer["webrtc_id"]
-#	puts "Found in SQL #{webrtc_id}"
 	found_peer=webrtc_raw_peers.find({webrtc_id: "#{webrtc_id}"},{webrtc_id: 1}).to_enum
 	if found_peer.any?
 	    if found_peer.first["offline"] == true

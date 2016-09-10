@@ -1,9 +1,10 @@
-
 def make_peer_list(args)
+	$return_data={}
 	if args.count <3
-		$err_logger.error 'Peer ID, channel ID and neighbors count needed, like this:'
-		$err_logger.error '>make_peer_list.worker.rb 8ecdc46f-1723-4474-b5ec-145e178cfb82 1231fsa2 10'
-		exit 1
+		$err_logger.error "Not enough arguments, got only"
+		$err_logger.error args.to_s
+		$return_data["Error"]="Not enough arguments"
+		return JSON.generate($return_data)
 	end
 
 	$current_peer={}
@@ -15,22 +16,18 @@ def make_peer_list(args)
 	$peers_required=args[2].to_i
 	$peers_left=$peers_required
 
-#	Mongo::Logger.logger.level = Logger::WARN
-#	mongo_client = client = Mongo::Client.new($mongo_url)
-#	$webrtc_raw_peers=mongo_client[:raw_peers]
-
 	$p2p_db_client=Mysql2::Client.new(:host => $p2p_db_host, :database => $p2p_db, :username => $p2p_db_user, :password => $p2p_db_pass)
 
 	begin
 		req="select count(webrtc_id) as webrtc_count from #{$p2p_db_state_table} where webrtc_id <> \"#{$current_peer["webrtc_id"]}\" and channel_id = \"#{$current_peer["channel_id"]}\";"
 		res=$p2p_db_client.query(req)
 	rescue => e
-		$err_logger.error "Error while counting peers in DB"
+		$err_logger.error "Error while counting peers in SQL"
 		$err_logger.error e.to_s
 	end
 	if res.first["webrtc_count"] < $peers_required
 		$peers_lack=true
-		$err_logger.error "DB doesn't contain enought peers"
+		$err_logger.warn "SQL doesn't contain enought peers"
 	end
 	
 	begin
@@ -42,9 +39,8 @@ def make_peer_list(args)
 	end
 
 	if ! res.any?
-		$return_data={"Error" => "Doesn't have this peer info (yet?)"}
+		$return_data=["Error"] = "Doesn't have this peer info (yet?)"
 		$err_logger.error res.each
-		#$p2p_db_client.close
 		return JSON.generate($return_data)
 	end
 
@@ -125,7 +121,6 @@ def make_peer_list(args)
 	end
 	
 	if enough_peers?
-		#$p2p_db_client.close
 		return JSON.generate($return_data)
 	else
 		$return_data["Warning"]="Not enough peers grabbed"
