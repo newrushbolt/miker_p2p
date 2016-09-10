@@ -28,7 +28,7 @@ curl -sSL https://get.rvm.io | bash -s stable
 #rvm install ruby-2.2
 #rvm --default use 2.2
 
-gem install rest-client mysql2 whois json geoip mongo logger sinatra thin benchmark --no-ri --no-doc
+gem install rest-client mysql2 whois json geoip mongo logger sinatra thin benchmark ruby-prof --no-ri --no-doc
 mkdir -p var/www
 mkdir -p var/log
 mkdir -p var/run
