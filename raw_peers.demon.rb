@@ -27,7 +27,7 @@ end
 $out_logger=Logger.new("#{$log_dir}/raw_peer.demon.out.log")
 $err_logger=Logger.new("#{$log_dir}/raw_peer.demon.err.log")
 $out_logger.level=Logger::ERROR
-$err_logger.level=Logger::ERROR
+$err_logger.level=Logger::DEBUG
 if ARGV[0]
     case ARGV[0]
     when 'debug'
@@ -246,7 +246,7 @@ def start_worker
 			$err_logger.error e_main.to_s
 			return false
 		end
-		sleep(0.01)
+		sleep(0.02)
 	end
 end
 

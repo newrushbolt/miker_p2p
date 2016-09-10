@@ -9,7 +9,7 @@ $p2p_db_state_table='peer_state'
 $p2p_db_inetnums_table='inetnums'
 $p2p_db_fastinetnums_table='fast_inetnums'
 $use_fast_whois_lib=true
-$fast_whois_lib='/home/mihailov.s/fast_whois_route/functions.lib.rb'
+$fast_whois_lib='/home/mihailov.s/fast_route_whois/functions.lib.rb'
 
 $mongo_url='mongodb://127.0.0.1:3303/webrtc'
 
