@@ -4,7 +4,7 @@ require 'json'
 
 $app_dir='/home/mihailov.s/miker_p2p'
 $log_dir='var/log'
-$log_level=Logger::WARN
+$log_level=Logger::INFO
 $default_user='mihailov.s'
 
 $p2p_db='p2p'

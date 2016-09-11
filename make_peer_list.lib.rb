@@ -39,14 +39,14 @@ def make_peer_list(args)
 	end
 
 	if ! res.any?
-		$return_data=["Error"] = "Doesn't have this peer info (yet?)"
+		$return_data["Error"] = "Doesn't have this peer info (yet?)"
 		$err_logger.error res.each
 		return JSON.generate($return_data)
 	end
 
 	#Need to deal with enum items counting,later
 	# if res.count == 0
-		# $return_data={"Error" => "Doesn't have this peer info (yet?)"}
+		# $return_data["Error"]="Doesn't have this peer info (yet?)"}
 		# $err_logger.error res.each
 		# return JSON.generate($return_data)
 	# elsif
