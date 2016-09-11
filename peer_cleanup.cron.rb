@@ -59,7 +59,7 @@ online_cnt=0
 all_peers.each do |peer|
 	webrtc_id=peer["webrtc_id"]
 	found_peer=webrtc_raw_peers.find({webrtc_id: "#{webrtc_id}"},{webrtc_id: 1}).to_enum
-	if found_peer.any? and found_peer.first["offline"]
+	if found_peer.any? and found_peer.first["offline"] ==true
 		$out_logger.debug "Removing #{webrtc_id} from SQL cause set offline in Mongo"
 		remove_peer_from_sql(webrtc_id)
 		offline_cnt+=1

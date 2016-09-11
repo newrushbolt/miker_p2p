@@ -41,7 +41,7 @@ def make_peer_list(args)
 	if ! res.any?
 		$return_data["Error"] = "Doesn't have this peer info (yet?)"
 		$err_logger.error res.each
-		return JSON.generate($return_data)
+		return end_of_story($return_data)
 	end
 
 	#Need to deal with enum items counting,later
@@ -65,7 +65,7 @@ def make_peer_list(args)
 	$current_peer["city"]=peer_res["city"]
 	$current_peer["region"]=peer_res["region"]
 
-	$out_logger.debug "Network peers, ignoring: #{$ignored_peers.to_s}"
+	$err_logger.debug "Network peers, ignoring: #{$ignored_peers.to_s}"
 	network_peers=get_network_peers($peers_left)
 	if network_peers.any?
 		network_peers.each do |network_peer|
@@ -75,10 +75,10 @@ def make_peer_list(args)
 		end
 	end
 	if enough_peers?
-		return JSON.generate($return_data)
+		return end_of_story($return_data)
 	end
 
-	$out_logger.debug "ASN peers, ignoring: #{$ignored_peers.to_s}"
+	$err_logger.debug "ASN peers, ignoring: #{$ignored_peers.to_s}"
 	asn_peers=get_asn_peers($peers_left)
 	if asn_peers.any?
 		asn_peers.each do |asn_peer|
@@ -90,10 +90,10 @@ def make_peer_list(args)
 		end
 	end
 	if enough_peers?
-		return JSON.generate($return_data)
+		return end_of_story($return_data)
 	end
 
-	$out_logger.debug "City peers, ignoring: #{$ignored_peers.to_s}"
+	$err_logger.debug "City peers, ignoring: #{$ignored_peers.to_s}"
 	city_peers=get_city_peers($peers_left)
 	if city_peers.any?
 		city_peers.each do |city_peer|
@@ -105,10 +105,10 @@ def make_peer_list(args)
 		end
 	end
 	if enough_peers?
-		return JSON.generate($return_data)
+		return end_of_story($return_data)
 	end
 
-	$out_logger.debug "Random peers, ignoring: #{$ignored_peers.to_s}"
+	$err_logger.debug "Random peers, ignoring: #{$ignored_peers.to_s}"
 	random_peers=get_random_peers($peers_left)
 	if random_peers.any?
 		random_peers.each do |random_peer|
@@ -121,13 +121,18 @@ def make_peer_list(args)
 	end
 	
 	if enough_peers?
-		return JSON.generate($return_data)
+		return end_of_story($return_data)
 	else
 		$return_data["Warning"]="Not enough peers grabbed"
-		return JSON.generate($return_data)
+		return end_of_story($return_data)
 	end
 end
-	
+
+def end_of_story(data)
+	$p2p_db_client.close
+	return JSON.generate($data)
+end
+
 def enough_peers?
 	if $return_data["peer_list"].count >= $peers_required
 		return true
