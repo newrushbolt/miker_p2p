@@ -130,7 +130,7 @@ end
 
 def end_of_story(data)
 	$p2p_db_client.close
-	return JSON.generate($data)
+	return JSON.generate(data)
 end
 
 def enough_peers?
