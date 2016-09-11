@@ -231,7 +231,7 @@ def start_worker
 				$err_logger.info "Adding peer, webrtc_id => #{raw_peer["webrtc_id"]}; channel_id => #{raw_peer["channel_id"]}"
 				up_info=update_peers_info(raw_peer)
 				$err_logger.debug "SQL peer update returned #{up_info.to_s}"
-				if ! up_info == false
+				if up_info
 					begin
 						$err_logger.debug "$webrtc_raw_peers.update_one({webrtc_id: #{raw_peer["webrtc_id"]}},{\"$set\":{unchecked: 0}})"
 						$webrtc_raw_peers.update_one({webrtc_id: raw_peer["webrtc_id"]},{"$set":{unchecked: 0}})
@@ -240,7 +240,7 @@ def start_worker
 						$err_logger.error e.to_s
 					end
 				else
-					$err_logger.error "SQL update failed"
+					$err_logger.error "SQL update failed for peer #{raw_peer["webrtc_id"]}, leaving it unchecked"
 				end
 			end
 		rescue => e_main
