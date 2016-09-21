@@ -207,7 +207,7 @@ def start_worker
 	$err_logger.info "Started worker"
 	begin
 		Mongo::Logger.logger.level = Logger::WARN
-		$mongo_client = Mongo::Client.new($mongo_url, :min_pool_size => 10 , :max_pool_size => 50)
+		$mongo_client = Mongo::Client.new($mongo_url, :min_pool_size => 1 , :max_pool_size => 1)
 		$webrtc_raw_peers=$mongo_client[:raw_peers]
 		$webrtc_raw_peers_cursor = $webrtc_raw_peers.find({unchecked: 1}, cursor_type: :tailable_await).to_enum
 	rescue => e
@@ -224,6 +224,7 @@ def start_worker
 		return false
 	end
 	
+	start_ts=Time.now.to_i
 	while true
 		begin
 			if $webrtc_raw_peers_cursor.any?
@@ -248,7 +249,12 @@ def start_worker
 			$err_logger.error e_main.to_s
 			return false
 		end
-		sleep(0.02)
+		cur_ts=Time.now.to_i
+		if cur_ts > (start_ts + 300)
+		    $err_logger.info "Time to die"
+		    return false
+		end
+		sleep(0.05)
 	end
 end
 
