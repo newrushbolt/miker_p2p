@@ -252,6 +252,7 @@ def start_worker
 		cur_ts=Time.now.to_i
 		if cur_ts > (start_ts + 300)
 		    $err_logger.info "Time to die"
+		    $mongo_client.close
 		    return false
 		end
 		sleep(0.05)
