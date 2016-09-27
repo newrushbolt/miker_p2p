@@ -1,15 +1,14 @@
 require 'etc'
 require 'geoip'
-require 'json'
-require 'logger'
 require 'mongo'
-require 'mysql2'
 require 'rest-client'
-require 'rubygems'
 require 'ruby-prof'
 require 'whois'
 
 require "#{Dir.pwd}/config.rb"
+$err_logger=Logger.new("#{$log_dir}/raw_peer.demon.err.log")
+$err_logger.level=$log_level
+
 if $use_fast_whois_lib 
 	require $fast_whois_lib
 end
@@ -24,8 +23,6 @@ if $default_user and RUBY_PLATFORM.include?('linux')
     end
 end
 
-$err_logger=Logger.new("#{$log_dir}/raw_peer.demon.err.log")
-$err_logger.level=$log_level
 
 if ARGV[0]
     case ARGV[0]
