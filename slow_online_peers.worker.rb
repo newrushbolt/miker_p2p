@@ -9,11 +9,9 @@ require 'logger'
 require 'json'
 
 require "#{$my_dir}/etc/common.conf.rb"
-if File.exists?("#{$my_dir}/etc/#{my_name}.conf.rb")
-	require "#{$my_dir}/etc/#{my_name}.conf.rb"
+if File.exists?("#{$my_dir}/etc/#{$my_name}.conf.rb")
+	require "#{$my_dir}/etc/#{$my_name}.conf.rb"
 end
-
-require $whois_lib
 
 if $default_user and RUBY_PLATFORM.include?('linux')
     begin
@@ -42,15 +40,19 @@ if ARGV[0]
     end
 end
 
+require $whois_lib
+
+
 rabbit_client = Bunny.new(:hostname => "localhost")
 rabbit_client.start
 
-rabbit_channel = rabbit_client.create_channel
-rabbit_slow_online = rabbit_channel.queue("slow_online_peers")
+rabbit_channel = rabbit_client.create_channel()
+rabbit_slow_online = rabbit_channel.queue("slow_online_peers", :durable => true)
 while true
-	rabbit_slow_online.subscribe(:block => true) do |delivery_info, properties, body|
+	rabbit_slow_online.subscribe(:block => true,:manual_ack => true) do |delivery_info, properties, body|
 		puts "Received #{body}"
-		sleep 5
-		delivery_info.consumer.cancel
+		sleep 1
+		rabbit_channel.acknowledge(delivery_info.delivery_tag, false)
+#		delivery_info.cancel
 	end
 end
