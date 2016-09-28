@@ -1,9 +1,3 @@
-require 'rubygems'
-require 'logger'
-require 'json'
-
-$app_dir='/home/mihailov.s/miker_p2p'
-$log_dir='var/log'
 $log_level=Logger::INFO
 $default_user='mihailov.s'
 
@@ -13,8 +7,7 @@ $p2p_db_user='p2p'
 $p2p_db_pass='wb5nv6d8'
 $p2p_db_state_table='peer_state'
 
-$use_fast_whois_lib=true
-$fast_whois_lib='/home/mihailov.s/fast_route_whois/functions.lib.rb'
+$whois_lib='../fast_route_whois/lib/whois.lib.rb'
 
 $mongo_url='mongodb://127.0.0.1:3303/webrtc'
 

@@ -4,17 +4,18 @@
 data/*
 data\*
 
-#Log files
-log/*
-log\*
+#Documentation
+doc\*
+doc/*
 
 #Some soft backups
 *.bak
 
-#New logs, lock, etc
-var/*
-var\*
-
+#Logs, locks
+var/log/*
+var\log\*
+var/run/*
+var\run\*
 
 # Windows image file caches
 Thumbs.db
