@@ -43,6 +43,7 @@ end
 
 begin
 	require $whois_lib
+	$fast_whois=Fast_whois.new
 	$slow_whois=Slow_whois.new
 rescue => e_main
 	$err_logger.error e_main.to_s
@@ -55,7 +56,8 @@ begin
 	rabbit_client = Bunny.new(:hostname => "localhost")
 	rabbit_client.start
 	rabbit_channel = rabbit_client.create_channel()
-	rabbit_slow_online = rabbit_channel.queue("slow_online_peers", :durable => true, :auto_delete => true)
+	rabbit_common_online  = rabbit_channel.queue("common_online _peers", :durable => true, :auto_delete => true)
+	rabbit_slow_online  = rabbit_channel.queue("slow_online _peers", :durable => true, :auto_delete => true)
 rescue => e_main
 	$err_logger.error e_main.to_s
 	raise "Error while connecting to RabbitMQ"
@@ -94,7 +96,7 @@ def update_peers_info(peer)
 			# return false
 		# end
 	else
-		aton_info=$slow_whois.get_ip_route(peer["ip"])
+		aton_info=$fast_whois.get_ip_route(peer["ip"])
 	end
 	if ! aton_info or aton_info.nil? or !(aton_info["network"] and aton_info["netmask"] and aton_info["asn"])
 		 $err_logger.error "IP info for #{peer["ip"]} doesn't have enought info, only this:"
@@ -145,16 +147,15 @@ def update_peers_info(peer)
 end
 
 while true
-	rabbit_slow_online.subscribe(:block => true,:manual_ack => true) do |delivery_info, properties, body|
+	rabbit_common_online .subscribe(:block => true,:manual_ack => true) do |delivery_info, properties, body|
 		peer=JSON.parse(body)
 		if update_peers_info(peer) ==true
-			rabbit_channel.acknowledge(delivery_info.delivery_tag, false)
 			$err_logger.info "Peer #{peer["webrtc_id"]} parsed successfull"
-		else
-			req="insert into ip_bad_peers values (\"#{peer["webrtc_id"]}\",\"#{peer["channel_id"]}\",\"#{peer["gg_id"]}\",\"#{peer["ip"]}\");"
-			res=$p2p_db_client.query(req)
 			rabbit_channel.acknowledge(delivery_info.delivery_tag, false)
-			$err_logger.warn "Parsing peer #{peer["webrtc_id"]} failed"
+		else
+			rabbit_slow_online.publish(body, :routing_key => rabbit_slow_online.name)
+			rabbit_channel.acknowledge(delivery_info.delivery_tag, false)
+			$err_logger.info "Parsing peer #{peer["webrtc_id"]} failed, pushing to slow queue"
 		end
 	end
 end
