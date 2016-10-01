@@ -25,7 +25,7 @@ if $default_user and RUBY_PLATFORM.include?('linux')
     end
 end
 
-$err_logger=Logger.new("#{$app_dir}/#{$log_dir}/#{$my_name}.log")
+$err_logger=Logger.new("#{$my_dir}/var/log/#{$my_name}.log")
 $err_logger.info "Launched #{$my_name}"
 $err_logger.level=$log_level
 if ARGV[1]
@@ -43,7 +43,7 @@ if ARGV[1]
     end
 end
 
-$port=$make_peer_list_start_port + $my_id
+$port=$make_peer_list_start_port + $my_id.to_i
 
 configure do
 	set :port, $port

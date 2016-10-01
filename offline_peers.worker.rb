@@ -45,7 +45,7 @@ begin
 	$rabbit_client = Bunny.new(:hostname => "localhost")
 	$rabbit_client.start
 	$rabbit_channel = $rabbit_client.create_channel()
-	$rabbit_slow_online = $rabbit_channel.queue("offline_peers", :durable => true, :auto_delete => true)
+	$rabbit_offline = $rabbit_channel.queue("offline_peers", :durable => true, :auto_delete => true)
 rescue => e_main
 	$err_logger.error e_main.to_s
 	raise "Error while connecting to RabbitMQ"
@@ -78,7 +78,7 @@ def remove_peer(peer)
 end
 
 while true
-	$rabbit_oflline.subscribe(:block => true,:manual_ack => true) do |delivery_info, properties, body|
+	$rabbit_offline.subscribe(:block => true,:manual_ack => true) do |delivery_info, properties, body|
 		peer=JSON.parse(body)
 		if remove(peer) ==true
 			$rabbit_channel.acknowledge(delivery_info.delivery_tag, false)
