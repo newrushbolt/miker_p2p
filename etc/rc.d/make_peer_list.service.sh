@@ -10,33 +10,20 @@
 # Description:       Starts P2P make_peer_list HTTP workers
 ### END INIT INFO
 
-rvm_bin_path='/usr/local/rvm/bin'
-GEM_HOME='/usr/local/rvm/gems/ruby-2.2.4'
-IRBRC='/usr/local/rvm/rubies/ruby-2.2.4/.irbrc'
-MY_RUBY_HOME='/usr/local/rvm/rubies/ruby-2.2.4'
-rvm_path='/usr/local/rvm'
-rvm_prefix='/usr/local'
-PATH='/usr/local/rvm/gems/ruby-2.2.4/bin:/usr/local/rvm/gems/ruby-2.2.4@global/bin:/usr/local/rvm/rubies/ruby-2.2.4/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/rvm/bin'
-rvm_version='1.27.0 (latest)'
-GEM_PATH='/usr/local/rvm/gems/ruby-2.2.4:/usr/local/rvm/gems/ruby-2.2.4@global'
-RUBY_VERSION='ruby-2.2.4'
-
-
-NAME='make_peer_list'
-WORKER='make_peer_list.demon.rb'
-USER='mihailov.s'
+NAME='make_peer_list.worker'
+WORKER='make_peer_list.worker.rb'
 APPDIR='/home/mihailov.s/miker_p2p'
-WORKERS=4
+source $APPDIR/etc/init_sources.sh
 
 cd $APPDIR
-ruby zabbix.rb $WORKERS >zabbix.json
+#ruby zabbix.rb $WORKERS >zabbix.json
 
 start() {
-    for (( i = 1; i <= $WORKERS; i++ ))
+    for (( i = 1; i <= $MAKE_PEER_LIST_WORKERS; i++ ))
     do
         PID_FILE=$APPDIR/var/run/"$NAME"_"$i".pid
 	if [ ! -f "$PID_FILE" ] ; then
-            ruby "$APPDIR/$WORKER" "350$i" >> "$APPDIR"/var/log/"$NAME"_"$i".service.log 2>&1 &
+            ruby "$APPDIR/$WORKER" "$i" >> "$APPDIR"/var/log/"$NAME"_"$i".service.log 2>&1 &
 	    PID=`echo $!`
 	    echo $PID > $PID_FILE
 	    echo -e "\033[36m $NAME worker $i \033[0m\t Started, PID $PID"
@@ -52,7 +39,7 @@ start() {
 }
 
 stop() {
-    for (( i = 1; i <= $WORKERS; i++ ))
+    for (( i = 1; i <= $MAKE_PEER_LIST_WORKERS; i++ ))
     do
         PID_FILE=$APPDIR/var/run/"$NAME"_"$i".pid
         if [ -f "$PID_FILE" ] ; then
@@ -71,7 +58,7 @@ stop() {
 }
 
 status() {
-    for (( i = 1; i <= $WORKERS; i++ ))
+    for (( i = 1; i <= $MAKE_PEER_LIST_WORKERS; i++ ))
     do
         PID_FILE=$APPDIR/var/run/"$NAME"_"$i".pid
         if [ -f "$PID_FILE" ] ; then

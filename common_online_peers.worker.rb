@@ -1,5 +1,6 @@
 $my_dir=File.expand_path(File.dirname(__FILE__))
-$my_name=File.basename(__FILE__,".rb")
+$my_id=ARGV[0] ? ARGV[0] : 1
+$my_name="#{File.basename(__FILE__,".rb")}_#{$my_id}"
 
 require 'etc'
 require 'mysql2'
@@ -26,8 +27,8 @@ end
 $err_logger=Logger.new("#{$my_dir}/var/log/#{$my_name}.log")
 $err_logger.info "Launched #{$my_name}"
 $err_logger.level=$log_level
-if ARGV[0]
-    case ARGV[0]
+if ARGV[1]
+    case ARGV[1]
     when "debug"
 	$err_logger.level=Logger::DEBUG
     when "info"

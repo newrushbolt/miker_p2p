@@ -1,21 +1,8 @@
-#SQLite database
-*.sqlite
-*.sqlite3
-data/*
-data\*
-
-#Documentation
-doc\*
-doc/*
-
-#Some soft backups
-*.bak
 
 #Logs, locks
 var/log/*
-var\log\*
 var/run/*
-var\run\*
+data/*
 
 # Windows image file caches
 Thumbs.db

@@ -1,9 +1,18 @@
-require "#{Dir.pwd}/config.rb"
-require "#{Dir.pwd}/make_peer_list.lib.rb"
+$my_dir=File.expand_path(File.dirname(__FILE__))
+$my_id=ARGV[0] ? ARGV[0] : 1
+$my_name="#{File.basename(__FILE__,".rb")}_#{$my_id}"
 
 require 'sinatra'
 require 'etc'
 require 'mysql2'
+require 'logger'
+
+require "#{Dir.pwd}/etc/common.conf.rb"
+if File.exists?("#{$my_dir}/etc/#{$my_name}.conf.rb")
+	require "#{$my_dir}/etc/#{$my_name}.conf.rb"
+end
+require "#{Dir.pwd}/lib/make_peer_list.lib.rb"
+
 
 if $default_user and RUBY_PLATFORM.include?('linux')
     begin
@@ -15,8 +24,6 @@ if $default_user and RUBY_PLATFORM.include?('linux')
 		exit
     end
 end
-
-$my_name='make_peer_list.demon'
 
 $err_logger=Logger.new("#{$app_dir}/#{$log_dir}/#{$my_name}.log")
 $err_logger.info "Launched #{$my_name}"
@@ -36,10 +43,7 @@ if ARGV[1]
     end
 end
 
-$port='3302'
-if ARGV.count > 0 and ARGV[0].to_i > 0
-	$port=ARGV[0]
-end
+$port=$make_peer_list_start_port + $my_id
 
 configure do
 	set :port, $port
