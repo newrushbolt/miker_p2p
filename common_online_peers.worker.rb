@@ -53,11 +53,11 @@ end
 $geocity_client=GeoIP.new('var/geoip/GeoLiteCity.dat')
 
 begin
-	rabbit_client = Bunny.new(:hostname => "localhost")
-	rabbit_client.start
-	rabbit_channel = rabbit_client.create_channel()
-	rabbit_common_online  = rabbit_channel.queue("common_online _peers", :durable => true, :auto_delete => true)
-	rabbit_slow_online  = rabbit_channel.queue("slow_online _peers", :durable => true, :auto_delete => true)
+	$rabbit_client = Bunny.new(:hostname => "localhost")
+	$rabbit_client.start
+	$rabbit_channel = $rabbit_client.create_channel()
+	$rabbit_common_online  = $rabbit_channel.queue("common_online_peers", :durable => true, :auto_delete => true)
+	$rabbit_slow_online  = $rabbit_channel.queue("slow_online_peers", :durable => true, :auto_delete => true)
 rescue => e_main
 	$err_logger.error e_main.to_s
 	raise "Error while connecting to RabbitMQ"
@@ -147,14 +147,15 @@ def update_peers_info(peer)
 end
 
 while true
-	rabbit_common_online .subscribe(:block => true,:manual_ack => true) do |delivery_info, properties, body|
+	$rabbit_common_online.subscribe(:block => true,:manual_ack => true) do |delivery_info, properties, body|
+		$err_logger.debug "Got info #{body}"
 		peer=JSON.parse(body)
 		if update_peers_info(peer) ==true
 			$err_logger.info "Peer #{peer["webrtc_id"]} parsed successfull"
-			rabbit_channel.acknowledge(delivery_info.delivery_tag, false)
+			$rabbit_channel.acknowledge(delivery_info.delivery_tag, false)
 		else
-			rabbit_slow_online.publish(body, :routing_key => rabbit_slow_online.name)
-			rabbit_channel.acknowledge(delivery_info.delivery_tag, false)
+			$rabbit_slow_online.publish(body, :routing_key => $rabbit_slow_online.name)
+			$rabbit_channel.acknowledge(delivery_info.delivery_tag, false)
 			$err_logger.info "Parsing peer #{peer["webrtc_id"]} failed, pushing to slow queue"
 		end
 	end
