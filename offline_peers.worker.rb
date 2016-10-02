@@ -61,6 +61,7 @@ end
 def remove_peer(peer)
 	begin
 		req="delete from #{$p2p_db_state_table} where webrtc_id = \"#{peer["webrtc_id"]}\";"
+		$err_logger.debug req
 		res=$p2p_db_client.query(req)
 	rescue  => e
 		$err_logger.error "Error in SQL removal for #{peer["webrtc_id"]}"
@@ -68,24 +69,25 @@ def remove_peer(peer)
 		$err_logger.error req
 		return false
 	end
-	if res.any?
+	aff=$p2p_db_client.affected_rows
+	$err_logger.debug "#{aff} rows affected"
+	if aff > 0
 		return true
 	else
 		return false
 	end
-
-	
 end
 
 while true
 	$rabbit_offline.subscribe(:block => true,:manual_ack => true) do |delivery_info, properties, body|
+		$err_logger.debug "Got info:\n #{body}"
 		peer=JSON.parse(body)
-		if remove(peer) ==true
-			$rabbit_channel.acknowledge(delivery_info.delivery_tag, false)
+		if remove_peer(peer)==true
 			$err_logger.info "Peer #{peer["webrtc_id"]} removed successfull"
-		else
 			$rabbit_channel.acknowledge(delivery_info.delivery_tag, false)
+		else
 			$err_logger.warn "Peer #{peer["webrtc_id"]} removal failed"
+			$rabbit_channel.acknowledge(delivery_info.delivery_tag, false)
 		end
 	end
 end

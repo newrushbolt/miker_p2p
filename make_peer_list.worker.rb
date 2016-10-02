@@ -4,6 +4,7 @@ $my_name="#{File.basename(__FILE__,".rb")}_#{$my_id}"
 
 require 'sinatra'
 require 'etc'
+require 'json'
 require 'mysql2'
 require 'logger'
 

@@ -74,6 +74,7 @@ end
 def update_peers_info(peer)
 	begin
 		req="select * from #{$p2p_db_state_table} where webrtc_id = \"#{peer["webrtc_id"]}\" and channel_id = \"#{peer["channel_id"]}\";"
+		$err_logger.debug req
 		res=$p2p_db_client.query(req)
 	rescue  => e
 		$err_logger.error "Error in SQL request for #{peer["webrtc_id"]}"
@@ -136,15 +137,22 @@ def update_peers_info(peer)
 	$err_logger.debug "Updating peer_info in SQL"		
 	begin
 		req="insert into #{$p2p_db_state_table} values (\"#{peer["webrtc_id"]}\",\"#{peer["channel_id"]}\",\"#{peer["gg_id"]}\",#{peer["timestamp"]}, INET_ATON(\"#{peer["ip"]}\"),INET_ATON(\"#{peer["network"]}\"),INET_ATON(\"#{peer["netmask"]}\"),#{peer["asn"]},\"#{peer["country"]}\",\"#{peer["region"]}\",\"#{peer["city"]}\");"
+		$err_logger.debug req
 		res=$p2p_db_client.query(req)
-		return true
 	rescue  => e
 		$err_logger.error "Error in SQL insert for #{peer["webrtc_id"]}"
 		$err_logger.error peer
-		$err_logger.error e.to_s
 		$err_logger.error req
+		$err_logger.error e.to_s
 		return false
 	end
+        aff=$p2p_db_client.affected_rows
+        $err_logger.debug "#{aff} rows affected"
+        if aff > 0
+            return true
+        else
+            return false
+        end
 end
 
 while true
@@ -156,8 +164,8 @@ while true
 			$rabbit_channel.acknowledge(delivery_info.delivery_tag, false)
 		else
 			$rabbit_slow_online.publish(body, :routing_key => $rabbit_slow_online.name)
-			$rabbit_channel.acknowledge(delivery_info.delivery_tag, false)
 			$err_logger.info "Parsing peer #{peer["webrtc_id"]} failed, pushing to slow queue"
+			$rabbit_channel.acknowledge(delivery_info.delivery_tag, false)
 		end
 	end
 end
