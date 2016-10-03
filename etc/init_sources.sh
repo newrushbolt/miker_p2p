@@ -11,10 +11,12 @@ rvm_version='1.27.0 (latest)'
 GEM_PATH='/usr/local/rvm/gems/ruby-2.2.4:/usr/local/rvm/gems/ruby-2.2.4@global'
 RUBY_VERSION='ruby-2.2.4'
 
+
 USER='mihailov.s'
-OFFLINE_WORKERS=2
-SLOW_ONLINE_WORKERS=2
-COMMON_ONLINE_WORKERS=4
+OFFLINE_PEERS_WORKERS=2
+SLOW_ONLINE_PEERS_WORKERS=2
+COMMON_ONLINE_PEERS_WORKERS=4
 MAKE_PEER_LIST_WORKERS=4
+
 
 #source $APPDIR/etc/init_sources.sh
