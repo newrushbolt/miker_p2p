@@ -51,11 +51,13 @@ configure do
 	set :bind, '127.0.0.1'
 	set :lock, true
 	set :environment, :production
+	set :logging, false
+	set :dump_errors, true
 end
 
 get '/peer_list' do
   resp=make_peer_list([params['webrtc_id'],params['channel_id'],params['neighbors']])
   $err_logger.info request.url
   $err_logger.info resp
-  resp
+  return resp
 end
