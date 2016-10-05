@@ -42,7 +42,8 @@ def make_peer_list(args)
 
 	if ! res.any?
 		$return_data["Error"] = "Doesn't have this peer info (yet?)"
-		$err_logger.error res.each
+		$err_logger.error "Doesn't have this peer info: #{$current_peer["webrtc_id"]}"
+		$err_logger.error res.inspect
 		return end_of_story($return_data)
 	end
 
