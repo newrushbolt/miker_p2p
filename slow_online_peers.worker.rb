@@ -115,17 +115,17 @@ def update_peers_info(peer)
 		$err_logger.warn e.to_s
 	end
 	
-	if geo_info.country_code3
+	if ! (geo_info.nil? and geo_info.country_code3.nil?)
 		peer["country"]=geo_info.country_code3
 	else
 		$err_logger.warn "GeoIP for #{peer["ip"]} doesn't have country_code3 info"
 	end
-	if geo_info.real_region_name
+	if ! (geo_info.nil? and geo_info.real_region_name.nil?)
 		peer["region"]=geo_info.real_region_name
 	else
 		$err_logger.warn "GeoIP for #{peer["ip"]} doesn't have real_region_name info"
 	end
-	if geo_info.city_name
+	if ! (geo_info.nil? and geo_info.city_name.nil?)
 		peer["city"]=geo_info.city_name
 	else
 		$err_logger.warn "GeoIP for #{peer["ip"]} doesn't have city_name info"
@@ -133,7 +133,7 @@ def update_peers_info(peer)
 
 	$err_logger.debug "Updating peer_info in SQL"		
 	begin
-		req="insert into #{$p2p_db_state_table} values (\"#{peer["webrtc_id"]}\",\"#{peer["channel_id"]}\",\"#{peer["gg_id"]}\",#{peer["timestamp"]}, INET_ATON(\"#{peer["ip"]}\"),INET_ATON(\"#{peer["network"]}\"),INET_ATON(\"#{peer["netmask"]}\"),#{peer["asn"]},\"#{peer["country"]}\",\"#{peer["region"]}\",\"#{peer["city"]}\");"
+		req="insert into #{$p2p_db_state_table} values (\"#{peer["webrtc_id"]}\",\"#{peer["channel_id"]}\",\"#{peer["gg_id"]}\",#{peer["timestamp"]}, INET_ATON(\"#{peer["ip"]}\"),INET_ATON(\"#{peer["network"]}\"),INET_ATON(\"#{peer["netmask"]}\"),#{peer["asn"]},\"#{peer["country"]}\",\"#{peer["region"]}\",\"#{peer["city"]}\") ON DUPLICATE KEY UPDATE channel_id=\"#{peer["channel_id"]}\";"
 		res=$p2p_db_client.query(req)
 	rescue  => e
 		$err_logger.error "Error in SQL insert for #{peer["webrtc_id"]}"
