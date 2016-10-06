@@ -158,7 +158,7 @@ while true
 			$err_logger.info "Peer #{peer["webrtc_id"]} parsed successfull"
 			rabbit_channel.acknowledge(delivery_info.delivery_tag, false)
 		else
-			req="insert into ip_bad_peers values (\"#{peer["webrtc_id"]}\",\"#{peer["channel_id"]}\",\"#{peer["gg_id"]}\",#{Time.now.to_i},INET_ATON(\"#{peer["ip"]}\"));"
+			req="insert into ip_bad_peers values (\"#{peer["webrtc_id"]}\",\"#{peer["channel_id"]}\",\"#{peer["gg_id"]}\",#{Time.now.to_i},INET_ATON(\"#{peer["ip"]}\")) ON DUPLICATE KEY UPDATE last_update=\"#{Time.now.to_i}\";"
 			res=$p2p_db_client.query(req)
 			$err_logger.warn "Parsing peer #{peer["webrtc_id"]} failed"
 			rabbit_channel.acknowledge(delivery_info.delivery_tag, false)
