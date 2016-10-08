@@ -67,6 +67,8 @@ def make_peer_list(args)
 	$current_peer["city"]=peer_res["city"]
 	$current_peer["region"]=peer_res["region"]
 
+	$err_logger.debug "Peer: #{$current_peer}"
+	
 	$err_logger.debug "Network peers, ignoring: #{$ignored_peers.to_s}"
 	network_peers=get_network_peers($peers_left)
 	if network_peers.any?
@@ -103,6 +105,21 @@ def make_peer_list(args)
 		    peer_line=[city_peer["webrtc_id"],"city"]
 		    $return_data["peer_list"].push(peer_line)
 		    $ignored_peers.push(city_peer["webrtc_id"])
+		end
+	    end
+	end
+	if enough_peers?
+		return end_of_story($return_data)
+	end
+	
+	$err_logger.debug "region peers, ignoring: #{$ignored_peers.to_s}"
+	region_peers=get_region_peers($peers_left)
+	if region_peers and region_peers.any?
+	    region_peers.each do |region_peer|
+		if ! $ignored_peers.include?(region_peer["webrtc_id"])
+		    peer_line=[region_peer["webrtc_id"],"region"]
+		    $return_data["peer_list"].push(peer_line)
+		    $ignored_peers.push(region_peer["webrtc_id"])
 		end
 	    end
 	end
@@ -189,7 +206,7 @@ def get_asn_peers(peer_count)
 end
 
 def get_city_peers(peer_count)
-    if $current_peer["city"] and ! $current_peer["city"]==""
+    if $current_peer["city"] and ! $current_peer["city"].nil?
 	begin
 	    req="select webrtc_id from #{$p2p_db_state_table} where city=\"#{$current_peer["city"]}\" and asn<>#{$current_peer["asn"]} and network<>inet_aton(\"#{$current_peer["network"]}\") and netmask<>inet_aton(\"#{$current_peer["netmask"]}\") and channel_id = \"#{$current_peer["channel_id"]}\" and webrtc_id <> \"#{$current_peer["webrtc_id"]}\" limit #{peer_count};"
 	    $err_logger.debug req
@@ -202,6 +219,25 @@ def get_city_peers(peer_count)
 	return res
     else
         $err_logger.warn "Peer #{$current_peer["webrtc_id"]} doesnt have correct city info"
+        return nil
+    end
+end
+
+def get_region_peers(peer_count)
+    if $current_peer["region"] and ! $current_peer["region"].nil?
+	    city_logic=($current_peer["city"] and ! $current_peer["city"].nil?) ? "city <> \"#{$current_peer["city"]}\" and" : ""
+		begin
+			req="select webrtc_id from #{$p2p_db_state_table} where #{city_logic} region=\"#{$current_peer["region"]}\" and asn<>#{$current_peer["asn"]} and network<>inet_aton(\"#{$current_peer["network"]}\") and netmask<>inet_aton(\"#{$current_peer["netmask"]}\") and channel_id = \"#{$current_peer["channel_id"]}\" and webrtc_id <> \"#{$current_peer["webrtc_id"]}\" limit #{peer_count};"
+			$err_logger.debug req
+			res=$p2p_db_client.query(req)
+		rescue  => e
+    	    $err_logger.error "Error while geting region peers"
+			$err_logger.error e.to_s
+    	    return nil
+        end
+		return res
+    else
+        $err_logger.warn "Peer #{$current_peer["webrtc_id"]} doesnt have correct region info"
         return nil
     end
 end
