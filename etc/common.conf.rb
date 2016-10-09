@@ -6,6 +6,7 @@ $p2p_db_host='localhost'
 $p2p_db_user='p2p'
 $p2p_db_pass='wb5nv6d8'
 $p2p_db_state_table='peer_state'
+$p2p_db_load_table='peer_load_5'
 
 $whois_lib='../fast_route_whois/lib/whois.lib.rb'
 $make_peer_list_start_port=3500

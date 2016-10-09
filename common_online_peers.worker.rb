@@ -84,19 +84,18 @@ def update_peers_info(peer)
 	end
 	$err_logger.debug "Base got any peer info? #{res.any?.to_s}"
 	if res.any?
-		return true
-	###disabled till log parse is off
-		# begin
-			# req="update #{$p2p_db_state_table} set last_update = \"#{peer["timestamp"]}\" where webrtc_id= \"#{peer["webrtc_id"]}\" and channel_id = \"#{peer["channel_id"]}\";"
-			# res=$p2p_db_client.query(req)	
-			# return true
-		# rescue  => e
-			# $err_logger.error "Error in DB update for #{peer["webrtc_id"]}"
-			# $err_logger.error e.to_s
-			# $err_logger.error req
-			# $err_logger.error peer
-			# return false
-		# end
+	#disabled till log parse is off
+		begin
+			req="update #{$p2p_db_state_table} set last_update = \"#{peer["timestamp"]}\" where webrtc_id= \"#{peer["webrtc_id"]}\" and channel_id = \"#{peer["channel_id"]}\";"
+			res=$p2p_db_client.query(req)	
+			return true
+		rescue  => e
+			$err_logger.error "Error in DB update for #{peer["webrtc_id"]}"
+			$err_logger.error e.to_s
+			$err_logger.error req
+			$err_logger.error peer
+			return false
+		end
 	else
 		aton_info=$fast_whois.get_ip_route(peer["ip"])
 	end
@@ -154,13 +153,13 @@ def update_peers_info(peer)
 		$err_logger.error e.to_s
 		return false
 	end
-        aff=$p2p_db_client.affected_rows
-        $err_logger.debug "#{aff} rows affected"
-        if aff > 0
-            return true
-        else
-            return false
-        end
+	aff=$p2p_db_client.affected_rows
+	$err_logger.debug "#{aff} rows affected"
+	if aff > 0
+		return true
+	else
+		return false
+	end
 end
 
 while true

@@ -62,7 +62,24 @@ end
 while true
 	rabbit_peer_log.subscribe(:block => true,:manual_ack => true) do |delivery_info, properties, body|
 		peer=JSON.parse(body)
-		$err_logger.debug "Got peer:\t\t#{peer}"
+		$err_logger.debug "Updating good_peers in SQL"
+		peer["good_peers"].each do |good_peer|
+			if good_peer["bytes"] > 0
+				begin
+					req="insert ignore into #{$p2p_db_load_table} values (\"#{peer["webrtc_id"]}\",#{peer["timestamp"]},\"#{good_peer["webrtc_id"]}\",#{good_peer["bytes"]});"
+					$err_logger.debug req
+					res=$p2p_db_client.query(req)
+				rescue  => e
+					$err_logger.error "Error in SQL insert for good_peer: #{peer["webrtc_id"]}"
+					$err_logger.error peer
+					$err_logger.error req
+					$err_logger.error e.to_s
+					return false
+				end
+				aff=$p2p_db_client.affected_rows
+				$err_logger.debug "#{aff} rows affected"
+			end
+		end
 		rabbit_channel.acknowledge(delivery_info.delivery_tag, false)
 	end
 end
