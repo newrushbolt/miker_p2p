@@ -69,27 +69,43 @@ def make_peer_list(args)
 
 	$err_logger.debug "Peer: #{$current_peer}"
 	
+	$err_logger.debug "Getting overloaded peers"
+	overloaded_peers=get_overloaded_peers($current_peer["channel_id"])
+	$err_logger.debug "Got overloaded peers:\n#{overloaded_peers}"
+	$ignored_peers=$ignored_peers | overloaded_peers
+
+	$err_logger.debug "Getting droppy peers"
+	droppy_peers=get_droppy_peers($current_peer["channel_id"])
+	$err_logger.debug "Got droppy_peers peers:\n#{droppy_peers}"
+	$ignored_peers=$ignored_peers | droppy_peers
+	
 	$err_logger.debug "Network peers, ignoring: #{$ignored_peers.to_s}"
-	network_peers=get_network_peers($peers_left)
+	network_peers=get_network_peers($peers_left + $ignored_peers.count)
 	if network_peers.any?
-		network_peers.each do |network_peer|
-			peer_line=[network_peer["webrtc_id"],"network"]
-			$return_data["peer_list"].push(peer_line)
-			$ignored_peers.push(network_peer["webrtc_id"])
+	    network_peers.each do |network_peer|
+		peer_line=[network_peer["webrtc_id"],"network"]
+		$return_data["peer_list"].push(peer_line)
+		$ignored_peers.push(network_peer["webrtc_id"])
+		if $return_data["peer_list"].count >= $peers_required
+		    break
 		end
+	    end
 	end
 	if enough_peers?
 		return end_of_story($return_data)
 	end
 
 	$err_logger.debug "ASN peers, ignoring: #{$ignored_peers.to_s}"
-	asn_peers=get_asn_peers($peers_left)
+	asn_peers=get_asn_peers($peers_left + $ignored_peers.count)
 	if asn_peers.any?
 	    asn_peers.each do |asn_peer|
 		if ! $ignored_peers.include?(asn_peer["webrtc_id"])
 		    peer_line=[asn_peer["webrtc_id"],"asn"]
 		    $return_data["peer_list"].push(peer_line)
 		    $ignored_peers.push(asn_peer["webrtc_id"])
+		    if $return_data["peer_list"].count >= $peers_required
+			break
+		    end
 		end
 	    end
 	end
@@ -98,13 +114,16 @@ def make_peer_list(args)
 	end
 
 	$err_logger.debug "City peers, ignoring: #{$ignored_peers.to_s}"
-	city_peers=get_city_peers($peers_left)
+	city_peers=get_city_peers($peers_left + $ignored_peers.count)
 	if city_peers and city_peers.any?
 	    city_peers.each do |city_peer|
 		if ! $ignored_peers.include?(city_peer["webrtc_id"])
 		    peer_line=[city_peer["webrtc_id"],"city"]
 		    $return_data["peer_list"].push(peer_line)
 		    $ignored_peers.push(city_peer["webrtc_id"])
+		    if $return_data["peer_list"].count >= $peers_required
+			break
+		    end
 		end
 	    end
 	end
@@ -113,13 +132,16 @@ def make_peer_list(args)
 	end
 	
 	$err_logger.debug "region peers, ignoring: #{$ignored_peers.to_s}"
-	region_peers=get_region_peers($peers_left)
+	region_peers=get_region_peers($peers_left + $ignored_peers.count)
 	if region_peers and region_peers.any?
 	    region_peers.each do |region_peer|
 		if ! $ignored_peers.include?(region_peer["webrtc_id"])
 		    peer_line=[region_peer["webrtc_id"],"region"]
 		    $return_data["peer_list"].push(peer_line)
 		    $ignored_peers.push(region_peer["webrtc_id"])
+		    if $return_data["peer_list"].count >= $peers_required
+			break
+		    end
 		end
 	    end
 	end
@@ -128,15 +150,18 @@ def make_peer_list(args)
 	end
 
 	$err_logger.debug "Random peers, ignoring: #{$ignored_peers.to_s}"
-	random_peers=get_random_peers($peers_left)
+	random_peers=get_random_peers($peers_left + $ignored_peers.count)
 	if random_peers.any?
-		random_peers.each do |random_peer|
-			if ! $ignored_peers.include?(random_peer["webrtc_id"])
-				peer_line=[random_peer["webrtc_id"],"random"]
-				$return_data["peer_list"].push(peer_line)
-				$ignored_peers.push(random_peer["webrtc_id"])
-			end
+	    random_peers.each do |random_peer|
+		if ! $ignored_peers.include?(random_peer["webrtc_id"])
+		    peer_line=[random_peer["webrtc_id"],"random"]
+		    $return_data["peer_list"].push(peer_line)
+		    $ignored_peers.push(random_peer["webrtc_id"])
+		    if $return_data["peer_list"].count >= $peers_required
+			break
+		    end
 		end
+	    end
 	end
 	
 	if enough_peers?
@@ -156,7 +181,7 @@ def enough_peers?
     if $return_data["peer_list"].count >= $peers_required
 	return true
     else
-	$peers_left = $peers_required - $return_data["peer_list"].count 
+	$peers_left = $peers_required - $return_data["peer_list"].count
 	return false
     end
 end
@@ -169,7 +194,7 @@ end
 	
 def get_random_peers(peer_count)
 	begin
-	req="select webrtc_id from #{$p2p_db_state_table} where channel_id = \"#{$current_peer["channel_id"]}\" and webrtc_id <> \"#{$current_peer["webrtc_id"]}\" limit #{peer_count};"		
+	req="select webrtc_id from #{$p2p_db_state_table} where channel_id = \"#{$current_peer["channel_id"]}\" and webrtc_id <> \"#{$current_peer["webrtc_id"]}\" limit #{peer_count};"
 	res=$p2p_db_client.query(req)
     rescue => e
         $err_logger.error "Error while geting peers for channel #{$current_peer["channel_id"]}"
@@ -202,7 +227,7 @@ def get_asn_peers(peer_count)
         $err_logger.error e.to_s
         return nil
     end
-	return res
+    return res
 end
 
 def get_city_peers(peer_count)
@@ -221,6 +246,40 @@ def get_city_peers(peer_count)
         $err_logger.warn "Peer #{$current_peer["webrtc_id"]} doesnt have correct city info"
         return nil
     end
+end
+
+def get_overloaded_peers(channel_id)
+    result=[]
+    begin
+	req="select webrtc_id from #{$p2p_db_state_table} where channel_id=\"#{channel_id}\" and (select count(distinct peer_webrtc_id) from #{$p2p_db_peer_load_table} where seed_webrtc_id=webrtc_id) > #{$seed_max_peers_5};"
+	$err_logger.debug req
+	res=$p2p_db_client.query(req)
+    rescue  => e
+        $err_logger.error "Error while getting oveloaded peers"
+        $err_logger.error e.to_s
+        return nil
+    end
+    res.each do |peer|
+	result.push(peer["webrtc_id"])
+    end
+    return result
+end
+
+def get_droppy_peers(channel_id)
+    result=[]
+    begin
+	req="select webrtc_id from #{$p2p_db_state_table} where channel_id=\"#{channel_id}\" and (select count(distinct peer_webrtc_id) from #{$p2p_db_bad_peer_table} where seed_webrtc_id=webrtc_id) > #{$seed_max_drops_30};"
+	$err_logger.debug req
+	res=$p2p_db_client.query(req)
+    rescue  => e
+        $err_logger.error "Error while getting oveloaded peers"
+        $err_logger.error e.to_s
+        return nil
+    end
+    res.each do |peer|
+	result.push(peer["webrtc_id"])
+    end
+    return result
 end
 
 def get_region_peers(peer_count)
