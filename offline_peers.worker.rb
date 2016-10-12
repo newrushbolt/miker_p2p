@@ -99,6 +99,7 @@ while true
 			end
 		else
 			$err_logger.error "Got incorrect peer:\n#{peer}"
+			$err_logger.error "webrtc_id: #{$validator.v_webrtc_id(peer["webrtc_id"]).inspect}"
 		end
 		$rabbit_channel.acknowledge(delivery_info.delivery_tag, false)
 

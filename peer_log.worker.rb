@@ -108,6 +108,9 @@ while true
 			end
 		else
 			$err_logger.error "Got incorrect peer:\n#{peer}"
+			$err_logger.error "webrtc_id: #{$validator.v_webrtc_id(peer["webrtc_id"]).inspect}"
+			$err_logger.error "ip: #{$validator.v_ip(peer["ip"]).inspect}"
+			$err_logger.error "ts: #{$validator.v_ts(peer["timestamp"].to_i/1000}"
 		end
 		rabbit_channel.acknowledge(delivery_info.delivery_tag, false)
 	end
