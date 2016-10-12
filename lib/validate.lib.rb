@@ -60,4 +60,22 @@ class Webrtc_validator
 			return false
 		end
 	end
+	
+	def v_ts(ts)
+		begin
+			ip_obj=IPAddr.new(ip)
+			@private_ip_nets.each do |net|
+				if net.include?(ip)
+					return false
+				end
+			end
+			if ip_obj.to_s == ip
+				return true
+			else
+				return false
+			end
+		rescue  => e_cor
+			return false
+		end
+	end
 end

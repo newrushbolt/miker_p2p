@@ -8,6 +8,7 @@ require 'bunny'
 require 'rubygems'
 require 'logger'
 require 'json'
+require 'ipaddr'
 
 require "#{$my_dir}/etc/common.conf.rb"
 if File.exists?("#{$my_dir}/etc/#{$my_name}.conf.rb")
@@ -42,6 +43,14 @@ if ARGV[1]
 end
 
 begin
+	require "#{$my_dir}/#{$validate_lib}"
+	$validator=Webrtc_validator.new	
+rescue => e_main
+	$err_logger.error e_main.to_s
+	raise "Error while loading libs"
+end
+
+begin
 	rabbit_client = Bunny.new(:hostname => "localhost")
 	rabbit_client.start
 	rabbit_channel = rabbit_client.create_channel()
@@ -63,15 +72,33 @@ while true
 	rabbit_peer_log.subscribe(:block => true,:manual_ack => true) do |delivery_info, properties, body|
 		peer=JSON.parse(body)
 		$err_logger.debug "Got log:\n#{peer}"
-		$err_logger.debug "Updating good_peers in SQL"
-		peer["goodPeers"].each do |good_peer|
-			if good_peer["bytes"] > 0
+		if $validator.v_webrtc_id(peer["webrtc_id"]) and $validator.v_ip(peer["ip"])
+			$err_logger.debug "Updating good_peers in SQL"
+			peer["goodPeers"].each do |good_peer|
+				if good_peer["bytes"] > 0
+					begin
+						req="insert ignore into #{$p2p_db_load_table} values (\"#{good_peer["webrtc_id"]}\",#{peer["timestamp"].to_i/1000},\"#{peer["webrtc_id"]}\",#{good_peer["bytes"]});"
+						$err_logger.debug req
+						res=$p2p_db_client.query(req)
+					rescue  => e
+						$err_logger.error "Error in SQL insert for good_peer: #{good_peer}"
+						$err_logger.error peer
+						$err_logger.error req
+						$err_logger.error e.to_s
+						return false
+					end
+					aff=$p2p_db_client.affected_rows
+					$err_logger.debug "#{aff} rows affected"
+				end
+			end
+			$err_logger.debug "Updating bad_peers in SQL"
+			peer["badPeers"].each do |bad_peer|
 				begin
-					req="insert ignore into #{$p2p_db_peer_load_table} values (\"#{good_peer["webrtc_id"]}\",#{peer["timestamp"].to_i/1000},\"#{peer["webrtc_id"]}\",#{good_peer["bytes"]});"
+					req="insert ignore into #{$p2p_db_bad_peer_table} values (\"#{bad_peer["webrtc_id"]}\",#{bad_peer["drop_timestamp"].to_i/1000},\"#{peer["webrtc_id"]}\");"
 					$err_logger.debug req
 					res=$p2p_db_client.query(req)
 				rescue  => e
-					$err_logger.error "Error in SQL insert for good_peer: #{good_peer}"
+					$err_logger.error "Error in SQL insert for bad_peer: #{bad_peer}"
 					$err_logger.error peer
 					$err_logger.error req
 					$err_logger.error e.to_s
@@ -80,21 +107,8 @@ while true
 				aff=$p2p_db_client.affected_rows
 				$err_logger.debug "#{aff} rows affected"
 			end
-		end
-		peer["badPeers"].each do |bad_peer|
-			begin
-				req="insert ignore into #{$p2p_db_bad_peer_table} values (\"#{bad_peer["webrtc_id"]}\",#{bad_peer["drop_timestamp"].to_i/1000},\"#{peer["webrtc_id"]}\");"
-				$err_logger.debug req
-				res=$p2p_db_client.query(req)
-			rescue  => e
-				$err_logger.error "Error in SQL insert for bad_peer: #{bad_peer}"
-				$err_logger.error peer
-				$err_logger.error req
-				$err_logger.error e.to_s
-				return false
-			end
-			aff=$p2p_db_client.affected_rows
-			$err_logger.debug "#{aff} rows affected"
+		else
+			$err_logger.error "Got incorrect peer:\n#{peer}"
 		end
 		rabbit_channel.acknowledge(delivery_info.delivery_tag, false)
 	end
