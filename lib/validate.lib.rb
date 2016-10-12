@@ -63,8 +63,8 @@ class Webrtc_validator
 	
 	def v_ts(ts)
 		begin
-			ts_obj=Time.at(ts.to_i/1000)
-			if ts_obj.to_i == (ts.to_i/1000) and (Time.now - ts_obj).to_i.abs < 600
+			ts_obj=Time.at(ts)
+			if ts_obj.to_i == ts and (Time.now - ts_obj).to_i.abs < 86400
 				return true
 			else
 				return false
