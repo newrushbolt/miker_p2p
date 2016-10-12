@@ -173,7 +173,7 @@ while true
 	$rabbit_common_online.subscribe(:block => true,:manual_ack => true) do |delivery_info, properties, body|
 		$err_logger.debug "Got info #{body}"
 		peer=JSON.parse(body)
-		if $validator.v_webrtc_id(peer["webrtc_id"]) and $validator.v_channel_id(peer["channel_id"]) and $validator.v_gg_id(peer["gg_id"]) and $validator.v_ip(peer["ip"])
+		if $validator.v_webrtc_id(peer["webrtc_id"]) and $validator.v_channel_id(peer["channel_id"]) and $validator.v_gg_id(peer["gg_id"]) and $validator.v_ip(peer["ip"]) and $validator.v_ts(peer["timestamp"].to_i/1000)
 			if update_peers_info(peer) ==true
 				$err_logger.info "Peer #{peer["webrtc_id"]} parsed successfull"
 				$rabbit_channel.acknowledge(delivery_info.delivery_tag, false)

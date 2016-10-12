@@ -67,12 +67,11 @@ rescue => e_main
 	raise "Error while connecting to MySQL"
 end
 
-
 while true
 	rabbit_peer_log.subscribe(:block => true,:manual_ack => true) do |delivery_info, properties, body|
 		peer=JSON.parse(body)
 		$err_logger.debug "Got log:\n#{peer}"
-		if $validator.v_webrtc_id(peer["webrtc_id"]) and $validator.v_ip(peer["ip"])
+		if $validator.v_webrtc_id(peer["webrtc_id"]) and $validator.v_ip(peer["ip"]) and $validator.v_ts(peer["timestamp"].to_i/1000)
 			$err_logger.debug "Updating good_peers in SQL"
 			peer["goodPeers"].each do |good_peer|
 				if good_peer["bytes"] > 0
