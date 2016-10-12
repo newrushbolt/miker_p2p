@@ -9,6 +9,7 @@ require 'rubygems'
 require 'logger'
 require 'json'
 require 'geoip'
+require 'ipaddr'
 
 require "#{$my_dir}/etc/common.conf.rb"
 if File.exists?("#{$my_dir}/etc/#{$my_name}.conf.rb")

@@ -12,7 +12,7 @@ require "#{Dir.pwd}/etc/common.conf.rb"
 if File.exists?("#{$my_dir}/etc/#{$my_name}.conf.rb")
 	require "#{$my_dir}/etc/#{$my_name}.conf.rb"
 end
-require "#{Dir.pwd}/lib/make_peer_list.lib.rb"
+require "#{$my_dir}/lib/make_peer_list.lib.rb"
 
 
 if $default_user and RUBY_PLATFORM.include?('linux')

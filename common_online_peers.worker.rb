@@ -45,13 +45,19 @@ end
 begin
 	require $whois_lib
 	$fast_whois=Fast_whois.new
-	$slow_whois=Slow_whois.new
+	require "#{$my_dir}/#{$validate_lib}"
+	$validator=Webrtc_validator.new
 rescue => e_main
 	$err_logger.error e_main.to_s
-	raise "Error while loading fast_whois lib"
+	raise "Error while loading libs"
 end
 
-$geocity_client=GeoIP.new('var/geoip/GeoLiteCity.dat')
+begin
+	$geocity_client=GeoIP.new('var/geoip/GeoLiteCity.dat')
+rescue => e_main
+	$err_logger.error e_main.to_s
+	raise "Error while starting GeoIP client"
+end
 
 begin
 	$rabbit_client = Bunny.new(:hostname => "localhost")
@@ -83,6 +89,7 @@ def update_peers_info(peer)
 		return false
 	end
 	$err_logger.debug "Base got any peer info? #{res.any?.to_s}"
+	peer["timestamp"]=(peer["timestamp"].to_i / 1000).to_i
 	if res.any?
 	#disabled till log parse is off
 		begin
@@ -99,6 +106,7 @@ def update_peers_info(peer)
 	else
 		aton_info=$fast_whois.get_ip_route(peer["ip"])
 	end
+	
 	if ! aton_info or aton_info.nil? or !(aton_info["network"] and aton_info["netmask"] and aton_info["asn"])
 		 $err_logger.error "IP info for #{peer["ip"]} doesn't have enought info, only this:"
 		 $err_logger.error aton_info.to_s
@@ -107,8 +115,7 @@ def update_peers_info(peer)
 	peer["network"]=aton_info["network"]
 	peer["netmask"]=aton_info["netmask"]
 	peer["asn"]=aton_info["asn"]
-	peer["timestamp"]=(peer["timestamp"].to_i / 1000).to_i
-	
+
 	$err_logger.debug "Getting GeoIP info"			
 	begin
 		geo_info=$geocity_client.city(peer["ip"])
@@ -166,12 +173,17 @@ while true
 	$rabbit_common_online.subscribe(:block => true,:manual_ack => true) do |delivery_info, properties, body|
 		$err_logger.debug "Got info #{body}"
 		peer=JSON.parse(body)
-		if update_peers_info(peer) ==true
-			$err_logger.info "Peer #{peer["webrtc_id"]} parsed successfull"
-			$rabbit_channel.acknowledge(delivery_info.delivery_tag, false)
+		if $validator.v_webrtc_id(peer["webrtc_id"]) and $validator.v_channel_id(peer["channel_id"]) and $validator.v_gg_id(peer["gg_id"]) and $validator.v_ip(peer["ip"])
+			if update_peers_info(peer) ==true
+				$err_logger.info "Peer #{peer["webrtc_id"]} parsed successfull"
+				$rabbit_channel.acknowledge(delivery_info.delivery_tag, false)
+			else
+				$rabbit_slow_online.publish(body, :routing_key => $rabbit_slow_online.name)
+				$err_logger.info "Parsing peer #{peer["webrtc_id"]} failed, pushing to slow queue"
+				$rabbit_channel.acknowledge(delivery_info.delivery_tag, false)
+			end
 		else
-			$rabbit_slow_online.publish(body, :routing_key => $rabbit_slow_online.name)
-			$err_logger.info "Parsing peer #{peer["webrtc_id"]} failed, pushing to slow queue"
+			$err_logger.error "Got incorrect peer:\n#{peer}"
 			$rabbit_channel.acknowledge(delivery_info.delivery_tag, false)
 		end
 	end

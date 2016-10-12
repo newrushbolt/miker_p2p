@@ -9,6 +9,8 @@ $p2p_db_state_table='peer_state'
 $p2p_db_peer_load_table='peer_load_5'
 $p2p_db_bad_peer_table='peer_bad_30'
 
+$validate_lib='lib/validate.lib.rb'
+
 $whois_lib='../fast_route_whois/lib/whois.lib.rb'
 $make_peer_list_start_port=3500
 $seed_max_drops_30=30
