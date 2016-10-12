@@ -46,9 +46,11 @@ end
 begin
 	require $whois_lib
 	$slow_whois=Slow_whois.new
+	require "#{$my_dir}/#{$validate_lib}"
+	$validator=Webrtc_validator.new	
 rescue => e_main
 	$err_logger.error e_main.to_s
-	raise "Error while loading fast_whois lib"
+	raise "Error while loading libs"
 end
 
 $geocity_client=GeoIP.new('var/geoip/GeoLiteCity.dat')
@@ -81,20 +83,19 @@ def update_peers_info(peer)
 		return false
 	end
 	$err_logger.debug "Base got any peer info? #{res.any?.to_s}"
+	peer["timestamp"]=(peer["timestamp"].to_i / 1000).to_i
 	if res.any?
-		return true
-	###disabled till log parse is off
-		# begin
-			# req="update #{$p2p_db_state_table} set last_update = \"#{peer["timestamp"]}\" where webrtc_id= \"#{peer["webrtc_id"]}\" and channel_id = \"#{peer["channel_id"]}\";"
-			# res=$p2p_db_client.query(req)	
-			# return true
-		# rescue  => e
-			# $err_logger.error "Error in DB update for #{peer["webrtc_id"]}"
-			# $err_logger.error e.to_s
-			# $err_logger.error req
-			# $err_logger.error peer
-			# return false
-		# end
+		begin
+			req="update #{$p2p_db_state_table} set last_update = \"#{peer["timestamp"]}\" where webrtc_id= \"#{peer["webrtc_id"]}\" and channel_id = \"#{peer["channel_id"]}\";"
+			res=$p2p_db_client.query(req)	
+			return true
+		rescue  => e
+			$err_logger.error "Error in DB update for #{peer["webrtc_id"]}"
+			$err_logger.error e.to_s
+			$err_logger.error req
+			$err_logger.error peer
+			return false
+		end
 	else
 		aton_info=$slow_whois.get_ip_route(peer["ip"])
 	end
@@ -106,7 +107,6 @@ def update_peers_info(peer)
 	peer["network"]=aton_info["network"]
 	peer["netmask"]=aton_info["netmask"]
 	peer["asn"]=aton_info["asn"]
-	peer["timestamp"]=(peer["timestamp"].to_i / 1000).to_i
 	
 	$err_logger.debug "Getting GeoIP info"			
 	begin
@@ -155,14 +155,17 @@ end
 while true
 	rabbit_slow_online.subscribe(:block => true,:manual_ack => true) do |delivery_info, properties, body|
 		peer=JSON.parse(body)
-		if update_peers_info(peer) ==true
-			$err_logger.info "Peer #{peer["webrtc_id"]} parsed successfull"
-			rabbit_channel.acknowledge(delivery_info.delivery_tag, false)
+		if $validator.v_webrtc_id(peer["webrtc_id"]) and $validator.v_channel_id(peer["channel_id"]) and $validator.v_gg_id(peer["gg_id"]) and $validator.v_ip(peer["ip"])
+			if update_peers_info(peer) ==true
+				$err_logger.info "Peer #{peer["webrtc_id"]} parsed successfull"
+			else
+				req="insert into ip_bad_peers values (\"#{peer["webrtc_id"]}\",\"#{peer["channel_id"]}\",\"#{peer["gg_id"]}\",#{Time.now.to_i},INET_ATON(\"#{peer["ip"]}\")) ON DUPLICATE KEY UPDATE last_update=\"#{Time.now.to_i}\";"
+				res=$p2p_db_client.query(req)
+				$err_logger.warn "Parsing peer #{peer["webrtc_id"]} failed"
+			end
 		else
-			req="insert into ip_bad_peers values (\"#{peer["webrtc_id"]}\",\"#{peer["channel_id"]}\",\"#{peer["gg_id"]}\",#{Time.now.to_i},INET_ATON(\"#{peer["ip"]}\")) ON DUPLICATE KEY UPDATE last_update=\"#{Time.now.to_i}\";"
-			res=$p2p_db_client.query(req)
-			$err_logger.warn "Parsing peer #{peer["webrtc_id"]} failed"
-			rabbit_channel.acknowledge(delivery_info.delivery_tag, false)
+			$err_logger.error "Got incorrect peer:\n#{peer}"
 		end
+		rabbit_channel.acknowledge(delivery_info.delivery_tag, false)
 	end
 end

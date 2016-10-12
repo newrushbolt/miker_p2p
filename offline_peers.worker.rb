@@ -8,6 +8,7 @@ require 'bunny'
 require 'rubygems'
 require 'logger'
 require 'json'
+require 'ipaddr'
 
 require "#{$my_dir}/etc/common.conf.rb"
 if File.exists?("#{$my_dir}/etc/#{$my_name}.conf.rb")
@@ -39,6 +40,14 @@ if ARGV[1]
     when "fatal"
 	$err_logger.level=Logger::FATAL
     end
+end
+
+begin
+	require "#{$my_dir}/#{$validate_lib}"
+	$validator=Webrtc_validator.new	
+rescue => e_main
+	$err_logger.error e_main.to_s
+	raise "Error while loading libs"
 end
 
 begin
@@ -82,12 +91,16 @@ while true
 	$rabbit_offline.subscribe(:block => true,:manual_ack => true) do |delivery_info, properties, body|
 		$err_logger.debug "Got info:\n #{body}"
 		peer=JSON.parse(body)
-		if remove_peer(peer)==true
-			$err_logger.info "Peer #{peer["webrtc_id"]} removed successfull"
-			$rabbit_channel.acknowledge(delivery_info.delivery_tag, false)
+		if $validator.v_webrtc_id(peer["webrtc_id"])
+			if remove_peer(peer)==true
+				$err_logger.info "Peer #{peer["webrtc_id"]} removed successfull"
+			else
+				$err_logger.warn "Peer #{peer["webrtc_id"]} removal failed"
+			end
 		else
-			$err_logger.warn "Peer #{peer["webrtc_id"]} removal failed"
-			$rabbit_channel.acknowledge(delivery_info.delivery_tag, false)
+			$err_logger.error "Got incorrect peer:\n#{peer}"
 		end
+		$rabbit_channel.acknowledge(delivery_info.delivery_tag, false)
+
 	end
 end

@@ -9,6 +9,7 @@ require 'rubygems'
 require 'logger'
 require 'json'
 require 'geoip'
+require 'ipaddr'
 
 require "#{$my_dir}/etc/common.conf.rb"
 if File.exists?("#{$my_dir}/etc/#{$my_name}.conf.rb")
@@ -91,7 +92,6 @@ def update_peers_info(peer)
 	$err_logger.debug "Base got any peer info? #{res.any?.to_s}"
 	peer["timestamp"]=(peer["timestamp"].to_i / 1000).to_i
 	if res.any?
-	#disabled till log parse is off
 		begin
 			req="update #{$p2p_db_state_table} set last_update = \"#{peer["timestamp"]}\" where webrtc_id= \"#{peer["webrtc_id"]}\" and channel_id = \"#{peer["channel_id"]}\";"
 			res=$p2p_db_client.query(req)	
