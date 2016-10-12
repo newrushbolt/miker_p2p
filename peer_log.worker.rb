@@ -77,7 +77,7 @@ while true
 			peer["goodPeers"].each do |good_peer|
 				if good_peer["bytes"] > 0
 					begin
-						req="insert ignore into #{$p2p_peer_db_load_table} values (\"#{good_peer["webrtc_id"]}\",#{peer["timestamp"].to_i/1000},\"#{peer["webrtc_id"]}\",#{good_peer["bytes"]});"
+						req="insert ignore into #{$p2p_db_peer_load_table} values (\"#{good_peer["webrtc_id"]}\",#{peer["timestamp"].to_i/1000},\"#{peer["webrtc_id"]}\",#{good_peer["bytes"]});"
 						$err_logger.debug req
 						res=$p2p_db_client.query(req)
 					rescue  => e
