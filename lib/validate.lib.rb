@@ -24,7 +24,7 @@ class Webrtc_validator
 		if channel_id.nil? or channel_id_true != channel_id
 			return false
 		end
-		if channel_id.match(/[0-9a-zA-Z]{1,14}(_[0-9a-zA-Z]{1,14}){2}/).to_s == channel_id
+		if channel_id.match(/[0-9a-zA-Z]{1,14}(_[0-9a-zA-Z]{1,14}){2,3}/).to_s == channel_id
 			return true
 		else
 			return false
@@ -62,15 +62,16 @@ class Webrtc_validator
 	end
 	
 	def v_ts(ts)
-		begin
-			ts_obj=Time.at(ts)
-			if ts_obj.to_i == ts and (Time.now - ts_obj).to_i.abs < 86400
-				return true
-			else
-				return false
-			end
-		rescue => e_cor
-			return false
-		end
+	    return true
+#		begin
+#			ts_obj=Time.at(ts)
+#			if ts_obj.to_i == ts and (Time.now - ts_obj).to_i.abs < 86400
+#				return true
+#			else
+#				return false
+#			end
+#		rescue => e_cor
+#			return false
+#		end
 	end
 end

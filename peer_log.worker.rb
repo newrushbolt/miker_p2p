@@ -74,7 +74,7 @@ while true
 		if $validator.v_webrtc_id(peer["webrtc_id"]) and $validator.v_ip(peer["ip"]) and $validator.v_ts(peer["timestamp"].to_i/1000)
 			$err_logger.debug "Updating good_peers in SQL"
 			peer["goodPeers"].each do |good_peer|
-				if good_peer["bytes"] > 0
+				if good_peer["bytes"] > 0 and $validator.v_webrtc_id(good_peer["webrtc_id"])
 					begin
 						req="insert ignore into #{$p2p_db_peer_load_table} values (\"#{good_peer["webrtc_id"]}\",#{peer["timestamp"].to_i/1000},\"#{peer["webrtc_id"]}\",#{good_peer["bytes"]});"
 						$err_logger.debug req
@@ -92,6 +92,7 @@ while true
 			end
 			$err_logger.debug "Updating bad_peers in SQL"
 			peer["badPeers"].each do |bad_peer|
+			    if $validator.v_webrtc_id(bad_peer["webrtc_id"])
 				begin
 					req="insert ignore into #{$p2p_db_bad_peer_table} values (\"#{bad_peer["webrtc_id"]}\",#{bad_peer["drop_timestamp"].to_i/1000},\"#{peer["webrtc_id"]}\");"
 					$err_logger.debug req
@@ -105,12 +106,13 @@ while true
 				end
 				aff=$p2p_db_client.affected_rows
 				$err_logger.debug "#{aff} rows affected"
+			    end
 			end
 		else
 			$err_logger.error "Got incorrect peer:\n#{peer}"
 			$err_logger.error "webrtc_id: #{$validator.v_webrtc_id(peer["webrtc_id"]).inspect}"
 			$err_logger.error "ip: #{$validator.v_ip(peer["ip"]).inspect}"
-			$err_logger.error "ts: #{$validator.v_ts(peer["timestamp"].to_i/1000}"
+			$err_logger.error "ts: #{$validator.v_ts(peer["timestamp"].to_i/1000).inspect}"
 		end
 		rabbit_channel.acknowledge(delivery_info.delivery_tag, false)
 	end
