@@ -24,7 +24,7 @@ class Webrtc_validator
 		if channel_id.nil? or channel_id_true != channel_id
 			return false
 		end
-		if channel_id.match(/[0-9a-zA-Z]{1,14}(_[0-9a-zA-Z]{1,14}){2,3}/).to_s == channel_id
+		if channel_id.match(/[0-9a-zA-Z_-]{1,32}/).to_s == channel_id
 			return true
 		else
 			return false
@@ -59,6 +59,18 @@ class Webrtc_validator
 		rescue  => e_cor
 			return false
 		end
+	end
+	
+	def v_log_fields(entry,fields)
+		if ! entry.to_a.count == fields.count
+			return false
+		end
+		fields.each do |field|
+			if ! entry[field]
+				return false
+			end
+		end
+		return true
 	end
 	
 	def v_ts(ts)

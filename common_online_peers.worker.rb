@@ -1,6 +1,7 @@
 $my_dir=File.expand_path(File.dirname(__FILE__))
 $my_id=ARGV[0] ? ARGV[0] : 1
 $my_name="#{File.basename(__FILE__,".rb")}_#{$my_id}"
+$my_type=$my_name.sub(/\.worker.*/,"")
 
 require 'etc'
 require 'mysql2'
@@ -78,7 +79,7 @@ rescue => e_main
 	raise "Error while connecting to MySQL"
 end
 
-def update_peers_info(peer)
+def db_got_peer(peer)
 	begin
 		req="select * from #{$p2p_db_state_table} where webrtc_id = \"#{peer["webrtc_id"]}\" and channel_id = \"#{peer["channel_id"]}\";"
 		$err_logger.debug req
@@ -90,8 +91,15 @@ def update_peers_info(peer)
 		return false
 	end
 	$err_logger.debug "Base got any peer info? #{res.any?.to_s}"
-	peer["timestamp"]=(peer["timestamp"].to_i / 1000).to_i
 	if res.any?
+		return true
+	end
+	return false
+end
+
+def update_peers_info(peer)
+	peer["timestamp"]=(peer["timestamp"].to_i / 1000).to_i
+	if db_got_peer(peer)
 		begin
 			req="update #{$p2p_db_state_table} set last_update = \"#{peer["timestamp"]}\" where webrtc_id= \"#{peer["webrtc_id"]}\" and channel_id = \"#{peer["channel_id"]}\";"
 			res=$p2p_db_client.query(req)	
@@ -169,27 +177,33 @@ def update_peers_info(peer)
 	end
 end
 
+cnt_init($my_type)
+
 while true
 	$rabbit_common_online.subscribe(:block => true,:manual_ack => true) do |delivery_info, properties, body|
 		$err_logger.debug "Got info #{body}"
+		fields=["webrtc_id","gg_id", "channel_id","timestamp","ip","unchecked"]
 		peer=JSON.parse(body)
-		if $validator.v_webrtc_id(peer["webrtc_id"]) and $validator.v_channel_id(peer["channel_id"]) and $validator.v_gg_id(peer["gg_id"]) and $validator.v_ip(peer["ip"]) and $validator.v_ts(peer["timestamp"].to_i/1000)
+		#Temp fix fot ts
+		if $validator.v_log_fields(peer,fields) and $validator.v_webrtc_id(peer["webrtc_id"]) and $validator.v_channel_id(peer["channel_id"]) and $validator.v_gg_id(peer["gg_id"]) and $validator.v_ip(peer["ip"]) and $validator.v_ts(peer["timestamp"].to_i/1000)
 			if update_peers_info(peer) ==true
 				$err_logger.info "Peer #{peer["webrtc_id"]} parsed successfull"
-				$rabbit_channel.acknowledge(delivery_info.delivery_tag, false)
+				cnt_up($my_type,"success")
 			else
 				$rabbit_slow_online.publish(body, :routing_key => $rabbit_slow_online.name)
 				$err_logger.info "Parsing peer #{peer["webrtc_id"]} failed, pushing to slow queue"
-				$rabbit_channel.acknowledge(delivery_info.delivery_tag, false)
+				cnt_up($my_type,"failed")
 			end
 		else
 			$err_logger.error "Got incorrect peer:\n#{peer}"
+			$err_logger.error "Fields: #{$validator.v_log_fields(peer,fields)}"
 			$err_logger.error "webrtc_id: #{$validator.v_webrtc_id(peer["webrtc_id"]).inspect}"
 			$err_logger.error "channel_id: #{$validator.v_channel_id(peer["channel_id"]).inspect}"
 			$err_logger.error "gg_id: #{$validator.v_gg_id(peer["gg_id"]).inspect}"
 			$err_logger.error "ip: #{$validator.v_ip(peer["ip"]).inspect}"
 			$err_logger.error "ts: #{$validator.v_ts(peer["timestamp"].to_i/1000).inspect}"
-			$rabbit_channel.acknowledge(delivery_info.delivery_tag, false)
+			cnt_up($my_type,"invalid")
 		end
-	end
+		$rabbit_channel.acknowledge(delivery_info.delivery_tag, false)
+		end
 end

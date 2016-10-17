@@ -7,4 +7,5 @@ require "#{$my_dir}/lib/validate.lib.rb"
 
 validator=Webrtc_validator.new
 
-puts validator.v_ts(ARGV[0].to_i).inspect
+
+puts validator.v_channel_id(ARGV[0]).inspect

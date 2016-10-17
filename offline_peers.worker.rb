@@ -1,6 +1,7 @@
 $my_dir=File.expand_path(File.dirname(__FILE__))
 $my_id=ARGV[0] ? ARGV[0] : 1
 $my_name="#{File.basename(__FILE__,".rb")}_#{$my_id}"
+$my_type=$my_name.sub(/\.worker.*/,"")
 
 require 'etc'
 require 'mysql2'
@@ -87,19 +88,25 @@ def remove_peer(peer)
 	end
 end
 
+cnt_init($my_type)
+
 while true
 	$rabbit_offline.subscribe(:block => true,:manual_ack => true) do |delivery_info, properties, body|
 		$err_logger.debug "Got info:\n #{body}"
 		peer=JSON.parse(body)
-		if $validator.v_webrtc_id(peer["webrtc_id"])
+		fields=["webrtc_id","offline"]
+		if validator.v_log_fields(peer,fields) and $validator.v_webrtc_id(peer["webrtc_id"])
 			if remove_peer(peer)==true
 				$err_logger.info "Peer #{peer["webrtc_id"]} removed successfull"
+				cnt_up($my_type,"success")
 			else
 				$err_logger.warn "Peer #{peer["webrtc_id"]} removal failed"
+				cnt_up($my_type,"failed")
 			end
 		else
 			$err_logger.error "Got incorrect peer:\n#{peer}"
 			$err_logger.error "webrtc_id: #{$validator.v_webrtc_id(peer["webrtc_id"]).inspect}"
+			cnt_up($my_type,"invalid")
 		end
 		$rabbit_channel.acknowledge(delivery_info.delivery_tag, false)
 

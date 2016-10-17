@@ -1,6 +1,7 @@
 $my_dir=File.expand_path(File.dirname(__FILE__))
 $my_id=ARGV[0] ? ARGV[0] : 1
 $my_name="#{File.basename(__FILE__,".rb")}_#{$my_id}"
+$my_type=$my_name.sub(/\.worker.*/,"")
 
 require 'etc'
 require 'mysql2'
@@ -42,6 +43,28 @@ if ARGV[1]
     end
 end
 
+def validate_log_entry(log)
+	
+end
+
+def db_got_peer(peer)
+	begin
+		req="select * from #{$p2p_db_state_table} where webrtc_id = \"#{peer["webrtc_id"]}\" and channel_id = \"#{peer["channel_id"]}\";"
+		$err_logger.debug req
+		res=$p2p_db_client.query(req)
+	rescue  => e
+		$err_logger.error "Error in SQL request for #{peer["webrtc_id"]}"
+		$err_logger.error e.to_s
+		$err_logger.error req
+		return false
+	end
+	$err_logger.debug "Base got any peer info? #{res.any?.to_s}"
+	if res.any?
+		return true
+	end
+	return false
+end
+
 begin
 	require "#{$my_dir}/#{$validate_lib}"
 	$validator=Webrtc_validator.new	
@@ -55,6 +78,7 @@ begin
 	rabbit_client.start
 	rabbit_channel = rabbit_client.create_channel()
 	rabbit_peer_log = rabbit_channel.queue("peer_log", :durable => true, :auto_delete => true)
+	rabbit_common_online  = rabbit_channel.queue("common_online_peers", :durable => true, :auto_delete => true)
 rescue => e_main
 	$err_logger.error e_main.to_s
 	raise "Error while connecting to RabbitMQ"
@@ -67,11 +91,20 @@ rescue => e_main
 	raise "Error while connecting to MySQL"
 end
 
+cnt_init($my_type)
+
 while true
 	rabbit_peer_log.subscribe(:block => true,:manual_ack => true) do |delivery_info, properties, body|
 		peer=JSON.parse(body)
+		fields=["webrtc_id","gg_id","timestamp","ip","goodPeers","badPeers"]
 		$err_logger.debug "Got log:\n#{peer}"
-		if $validator.v_webrtc_id(peer["webrtc_id"]) and $validator.v_ip(peer["ip"]) and $validator.v_ts(peer["timestamp"].to_i/1000)
+		#Temp fix fot ts
+		peer["timestamp"]=Time.now.to_i *1000
+		if $validator.v_log_fields(peer,fields) and $validator.v_webrtc_id(peer["webrtc_id"]) and $validator.v_ip(peer["ip"]) and $validator.v_ts(peer["timestamp"].to_i/1000)
+			$err_logger.debug "Finding seed in peer_state db"
+			if ! db_got_peer
+				rabbit_common_online.publish(body, :routing_key => rabbit_common_online.name)
+			end
 			$err_logger.debug "Updating good_peers in SQL"
 			peer["goodPeers"].each do |good_peer|
 				if good_peer["bytes"] > 0 and $validator.v_webrtc_id(good_peer["webrtc_id"])
@@ -79,12 +112,11 @@ while true
 						req="insert ignore into #{$p2p_db_peer_load_table} values (\"#{good_peer["webrtc_id"]}\",#{peer["timestamp"].to_i/1000},\"#{peer["webrtc_id"]}\",#{good_peer["bytes"]});"
 						$err_logger.debug req
 						res=$p2p_db_client.query(req)
-					rescue  => e
+					rescue => e
 						$err_logger.error "Error in SQL insert for good_peer: #{good_peer}"
 						$err_logger.error peer
 						$err_logger.error req
 						$err_logger.error e.to_s
-						return false
 					end
 					aff=$p2p_db_client.affected_rows
 					$err_logger.debug "#{aff} rows affected"
@@ -93,26 +125,28 @@ while true
 			$err_logger.debug "Updating bad_peers in SQL"
 			peer["badPeers"].each do |bad_peer|
 			    if $validator.v_webrtc_id(bad_peer["webrtc_id"])
-				begin
-					req="insert ignore into #{$p2p_db_bad_peer_table} values (\"#{bad_peer["webrtc_id"]}\",#{bad_peer["drop_timestamp"].to_i/1000},\"#{peer["webrtc_id"]}\");"
-					$err_logger.debug req
-					res=$p2p_db_client.query(req)
-				rescue  => e
-					$err_logger.error "Error in SQL insert for bad_peer: #{bad_peer}"
-					$err_logger.error peer
-					$err_logger.error req
-					$err_logger.error e.to_s
-					return false
-				end
-				aff=$p2p_db_client.affected_rows
-				$err_logger.debug "#{aff} rows affected"
+				bad_peer["drop_timestamp"]=Time.now.to_i *1000
+					begin
+						req="insert ignore into #{$p2p_db_bad_peer_table} values (\"#{bad_peer["webrtc_id"]}\",#{bad_peer["drop_timestamp"].to_i/1000},\"#{peer["webrtc_id"]}\");"
+						$err_logger.debug req
+						res=$p2p_db_client.query(req)
+					rescue => e
+						$err_logger.error "Error in SQL insert for bad_peer: #{bad_peer}"
+						$err_logger.error peer
+						$err_logger.error req
+						$err_logger.error e.to_s
+					end
+					aff=$p2p_db_client.affected_rows
+					$err_logger.debug "#{aff} rows affected"
 			    end
 			end
+			cnt_up($my_type,"success")
 		else
 			$err_logger.error "Got incorrect peer:\n#{peer}"
 			$err_logger.error "webrtc_id: #{$validator.v_webrtc_id(peer["webrtc_id"]).inspect}"
 			$err_logger.error "ip: #{$validator.v_ip(peer["ip"]).inspect}"
 			$err_logger.error "ts: #{$validator.v_ts(peer["timestamp"].to_i/1000).inspect}"
+			cnt_up($my_type,"invalid")
 		end
 		rabbit_channel.acknowledge(delivery_info.delivery_tag, false)
 	end

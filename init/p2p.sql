@@ -14,9 +14,9 @@ CREATE TABLE `peer_state` (
   `country` varchar(45) DEFAULT NULL,
   `region` varchar(45) DEFAULT NULL,
   `city` varchar(45) DEFAULT NULL,
-  UNIQUE KEY `webrtc_id` (`webrtc_id`),
-  UNIQUE KEY `uniq_id` (`webrtc_id`,`channel_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+  UNIQUE KEY `webrtc_id` (`webrtc_id`) USING BTREE,
+  UNIQUE KEY `uniq_id` (`webrtc_id`,`channel_id`) USING BTREE
+) ENGINE=MEMORY DEFAULT CHARSET=utf8;
 
 DROP TABLE IF EXISTS `ip_bad_peers`;
 CREATE TABLE `ip_bad_peers` (
@@ -25,9 +25,9 @@ CREATE TABLE `ip_bad_peers` (
   `gg_id` varchar(45) DEFAULT NULL,
   `last_update` int(10) unsigned NOT NULL,
   `ip` int(10) unsigned NOT NULL,
-  UNIQUE KEY `webrtc_id` (`webrtc_id`),
-  UNIQUE KEY `uniq_id` (`webrtc_id`,`channel_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+  UNIQUE KEY `webrtc_id` (`webrtc_id`) USING BTREE,
+  UNIQUE KEY `uniq_id` (`webrtc_id`,`channel_id`) USING BTREE
+) ENGINE=MEMORY DEFAULT CHARSET=utf8;
 
 DROP TABLE IF EXISTS `peer_load_5`;
 CREATE TABLE `peer_load_5` (
@@ -54,9 +54,16 @@ CREATE TABLE `net_bad_30` (
   `peer_network` int(10) unsigned NOT NULL,
   `peer_netmask` int(10) unsigned NOT NULL,
   UNIQUE KEY `uniq_ts_ids` (`seed_network`,`seed_netmask`,`ts`,`peer_network`,`peer_netmask`) USING BTREE,
-  PRIMARY KEY `seed_net` (`seed_network`,`seed_netmask`)
-) ENGINE=INNODB DEFAULT CHARSET=utf8;
+  PRIMARY KEY `seed_net` (`seed_network`,`seed_netmask`) USING BTREE
+) ENGINE=MEMORY DEFAULT CHARSET=utf8;
 
+DROP TABLE IF EXISTS `worker_counters`;
+CREATE TABLE `worker_counters` (
+  `worker` varchar(45) NOT NULL,
+  `type` varchar(45) NOT NULL,
+  `count` int(10) unsigned,
+  UNIQUE KEY `uniq_worker` (`worker`,`type`) USING BTREE
+) ENGINE=MEMORY DEFAULT CHARSET=utf8;
 
 DROP USER 'p2p'@'localhost';
 CREATE USER 'p2p'@'localhost' IDENTIFIED BY 'wb5nv6d8';
