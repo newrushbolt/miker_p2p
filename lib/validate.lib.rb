@@ -62,10 +62,14 @@ class Webrtc_validator
 	end
 	
 	def v_log_fields(entry,fields)
+	    return true
+	    $err_logger.debug "Got required fields: #{fields}"
 		if ! entry.to_a.count == fields.count
 			return false
 		end
 		fields.each do |field|
+			$err_logger.debug "Got field: #{field}"
+			$err_logger.debug "Field result: #{entry.has_key?(field).inspect}"
 			if ! entry[field]
 				return false
 			end

@@ -96,13 +96,13 @@ cnt_init($my_type)
 while true
 	rabbit_peer_log.subscribe(:block => true,:manual_ack => true) do |delivery_info, properties, body|
 		peer=JSON.parse(body)
-		fields=["webrtc_id","gg_id","timestamp","ip","goodPeers","badPeers"]
+		fields=["webrtc_id","timestamp","ip","goodPeers","badPeers","perfomance"]
 		$err_logger.debug "Got log:\n#{peer}"
 		#Temp fix fot ts
-		peer["timestamp"]=Time.now.to_i *1000
+		peer["timestamp"]=Time.now.to_i() *1000
 		if $validator.v_log_fields(peer,fields) and $validator.v_webrtc_id(peer["webrtc_id"]) and $validator.v_ip(peer["ip"]) and $validator.v_ts(peer["timestamp"].to_i/1000)
 			$err_logger.debug "Finding seed in peer_state db"
-			if ! db_got_peer
+			if ! db_got_peer(peer)
 				rabbit_common_online.publish(body, :routing_key => rabbit_common_online.name)
 			end
 			$err_logger.debug "Updating good_peers in SQL"
@@ -125,7 +125,7 @@ while true
 			$err_logger.debug "Updating bad_peers in SQL"
 			peer["badPeers"].each do |bad_peer|
 			    if $validator.v_webrtc_id(bad_peer["webrtc_id"])
-				bad_peer["drop_timestamp"]=Time.now.to_i *1000
+				bad_peer["drop_timestamp"]=Time.now.to_i() *1000
 					begin
 						req="insert ignore into #{$p2p_db_bad_peer_table} values (\"#{bad_peer["webrtc_id"]}\",#{bad_peer["drop_timestamp"].to_i/1000},\"#{peer["webrtc_id"]}\");"
 						$err_logger.debug req
@@ -143,6 +143,7 @@ while true
 			cnt_up($my_type,"success")
 		else
 			$err_logger.error "Got incorrect peer:\n#{peer}"
+			$err_logger.error "Fields validation:#{$validator.v_log_fields(peer,fields).inspect}"
 			$err_logger.error "webrtc_id: #{$validator.v_webrtc_id(peer["webrtc_id"]).inspect}"
 			$err_logger.error "ip: #{$validator.v_ip(peer["ip"]).inspect}"
 			$err_logger.error "ts: #{$validator.v_ts(peer["timestamp"].to_i/1000).inspect}"

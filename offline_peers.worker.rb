@@ -95,7 +95,7 @@ while true
 		$err_logger.debug "Got info:\n #{body}"
 		peer=JSON.parse(body)
 		fields=["webrtc_id","offline"]
-		if validator.v_log_fields(peer,fields) and $validator.v_webrtc_id(peer["webrtc_id"])
+		if $validator.v_log_fields(peer,fields) and $validator.v_webrtc_id(peer["webrtc_id"])
 			if remove_peer(peer)==true
 				$err_logger.info "Peer #{peer["webrtc_id"]} removed successfull"
 				cnt_up($my_type,"success")

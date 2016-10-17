@@ -1,7 +1,7 @@
 CREATE DATABASE  IF NOT EXISTS `p2p`;
 USE `p2p`;
 
-DROP TABLE IF EXISTS `peer_state`;
+DROP TABLE IF EXISTS peer_state;
 CREATE TABLE `peer_state` (
   `webrtc_id` varchar(45) NOT NULL,
   `channel_id` varchar(45) NOT NULL,
@@ -18,7 +18,7 @@ CREATE TABLE `peer_state` (
   UNIQUE KEY `uniq_id` (`webrtc_id`,`channel_id`) USING BTREE
 ) ENGINE=MEMORY DEFAULT CHARSET=utf8;
 
-DROP TABLE IF EXISTS `ip_bad_peers`;
+DROP TABLE IF EXISTS ip_bad_peers;
 CREATE TABLE `ip_bad_peers` (
   `webrtc_id` varchar(45) NOT NULL,
   `channel_id` varchar(45) NOT NULL,
@@ -29,16 +29,16 @@ CREATE TABLE `ip_bad_peers` (
   UNIQUE KEY `uniq_id` (`webrtc_id`,`channel_id`) USING BTREE
 ) ENGINE=MEMORY DEFAULT CHARSET=utf8;
 
-DROP TABLE IF EXISTS `peer_load_5`;
+DROP TABLE IF EXISTS peer_load_5;
 CREATE TABLE `peer_load_5` (
   `seed_webrtc_id` varchar(45) NOT NULL,
   `ts` int(10) unsigned NOT NULL,
   `peer_webrtc_id` varchar(45) NOT NULL,
   `bytes` int(10) unsigned NOT NULL,
   UNIQUE KEY `uniq_ts_ids` (`seed_webrtc_id`,`ts`,`peer_webrtc_id`) USING BTREE
-) ENGINE=MEMORY DEFAULT CHARSET=utf8 
+) ENGINE=MEMORY DEFAULT CHARSET=utf8;
 
-DROP TABLE IF EXISTS `peer_bad_30`;
+DROP TABLE IF EXISTS peer_bad_30;
 CREATE TABLE `peer_bad_30` (
   `seed_webrtc_id` varchar(45) NOT NULL,
   `ts` int(10) unsigned NOT NULL,
@@ -46,7 +46,7 @@ CREATE TABLE `peer_bad_30` (
   UNIQUE KEY `uniq_ts_ids` (`seed_webrtc_id`,`ts`,`peer_webrtc_id`) USING BTREE
 ) ENGINE=MEMORY DEFAULT CHARSET=utf8;
 
-DROP TABLE IF EXISTS net_bad_30`;
+DROP TABLE IF EXISTS net_bad_30;
 CREATE TABLE `net_bad_30` (
   `seed_network` int(10) unsigned NOT NULL,
   `seed_netmask` int(10) unsigned NOT NULL,
@@ -57,7 +57,7 @@ CREATE TABLE `net_bad_30` (
   PRIMARY KEY `seed_net` (`seed_network`,`seed_netmask`) USING BTREE
 ) ENGINE=MEMORY DEFAULT CHARSET=utf8;
 
-DROP TABLE IF EXISTS `worker_counters`;
+DROP TABLE IF EXISTS worker_counters;
 CREATE TABLE `worker_counters` (
   `worker` varchar(45) NOT NULL,
   `type` varchar(45) NOT NULL,
