@@ -185,6 +185,7 @@ while true
 		fields=["webrtc_id","gg_id", "channel_id","timestamp","ip","unchecked"]
 		peer=JSON.parse(body)
 		#Temp fix fot ts
+		peer["timestamp"]=Time.now.to_i() * 1000
 		if $validator.v_log_fields(peer,fields) and $validator.v_webrtc_id(peer["webrtc_id"]) and $validator.v_channel_id(peer["channel_id"]) and $validator.v_gg_id(peer["gg_id"]) and $validator.v_ip(peer["ip"]) and $validator.v_ts(peer["timestamp"].to_i/1000)
 			if update_peers_info(peer) ==true
 				$err_logger.info "Peer #{peer["webrtc_id"]} parsed successfull"
