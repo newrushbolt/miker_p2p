@@ -1,4 +1,4 @@
-$log_level=Logger::WARN
+$log_level=Logger::INFO
 $default_user='mihailov.s'
 
 $p2p_db='p2p'

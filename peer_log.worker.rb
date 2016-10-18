@@ -77,8 +77,8 @@ begin
 	rabbit_client = Bunny.new(:hostname => "localhost")
 	rabbit_client.start
 	rabbit_channel = rabbit_client.create_channel()
-	rabbit_peer_log = rabbit_channel.queue("peer_log", :durable => true, :auto_delete => true)
-	rabbit_common_online  = rabbit_channel.queue("common_online_peers", :durable => true, :auto_delete => true)
+	rabbit_peer_log = rabbit_channel.queue("peer_log", :durable => true, :auto_delete => false)
+	rabbit_common_online  = rabbit_channel.queue("common_online_peers", :durable => true, :auto_delete => false)
 rescue => e_main
 	$err_logger.error e_main.to_s
 	raise "Error while connecting to RabbitMQ"
@@ -101,10 +101,27 @@ while true
 		#Temp fix fot ts
 		peer["timestamp"]=Time.now.to_i() *1000
 		if $validator.v_log_fields(peer,fields) and $validator.v_webrtc_id(peer["webrtc_id"]) and $validator.v_ip(peer["ip"]) and $validator.v_ts(peer["timestamp"].to_i/1000)
-			$err_logger.debug "Finding seed in peer_state db"
-			if ! db_got_peer(peer)
-				rabbit_common_online.publish(body, :routing_key => rabbit_common_online.name)
+		    $err_logger.debug "Finding seed in peer_state db"
+		    if db_got_peer(peer)
+			begin
+			    req="update #{$p2p_db_state_table} set last_update = \"#{peer["timestamp"]}\" where webrtc_id= \"#{peer["webrtc_id"]}\" and channel_id = \"#{peer["channel_id"]}\";"
+			    res=$p2p_db_client.query(req)	
+			rescue  => e
+			    $err_logger.error "Error in DB update for #{peer["webrtc_id"]}"
+			    $err_logger.error e.to_s
+			    $err_logger.error req
+			    $err_logger.error peer
 			end
+		    else
+			$err_logger.info "Peer #{peer["webrtc_id"]} doesnt exist in peer_state db, adding to common queue"
+			online_peer={}
+			online_peer["webrtc_id"]=peer["webrtc_id"]
+			online_peer["gg_id"]=peer["gg_id"]
+			online_peer["channel_id"]=peer["channel_id"]
+			online_peer["ip"]=peer["ip"]
+			online_peer["timestamp"]=peer["timestamp"]
+			rabbit_common_online.publish(JSON.generate(online_peer), :routing_key => rabbit_common_online.name)
+		    end
 			$err_logger.debug "Updating good_peers in SQL"
 			peer["goodPeers"].each do |good_peer|
 				if good_peer["bytes"] > 0 and $validator.v_webrtc_id(good_peer["webrtc_id"])

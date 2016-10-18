@@ -55,7 +55,7 @@ begin
 	$rabbit_client = Bunny.new(:hostname => "localhost")
 	$rabbit_client.start
 	$rabbit_channel = $rabbit_client.create_channel()
-	$rabbit_offline = $rabbit_channel.queue("offline_peers", :durable => true, :auto_delete => true)
+	$rabbit_offline = $rabbit_channel.queue("offline_peers", :durable => true, :auto_delete => false)
 rescue => e_main
 	$err_logger.error e_main.to_s
 	raise "Error while connecting to RabbitMQ"
