@@ -12,7 +12,7 @@ class Webrtc_validator
 		if webrtc_id.nil? or webrtc_id_true != webrtc_id
 			return false
 		end
-		if webrtc_id.match(/[1-9]{1}\:[0-9a-z]{9}/).to_s == webrtc_id
+		if webrtc_id.match(/[0-9]{1,3}\:[0-9a-z]{5,12}/).to_s == webrtc_id
 			return true
 		else
 			return false

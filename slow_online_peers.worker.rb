@@ -116,17 +116,17 @@ def update_peers_info(peer)
 		$err_logger.warn e.to_s
 	end
 	
-	if ! (geo_info.nil? and geo_info.country_code3.nil?)
+	if geo_info and geo_info.country_code3
 		peer["country"]=geo_info.country_code3
 	else
 		$err_logger.warn "GeoIP for #{peer["ip"]} doesn't have country_code3 info"
 	end
-	if ! (geo_info.nil? and geo_info.real_region_name.nil?)
+	if geo_info and geo_info.real_region_name
 		peer["region"]=geo_info.real_region_name
 	else
 		$err_logger.warn "GeoIP for #{peer["ip"]} doesn't have real_region_name info"
 	end
-	if ! (geo_info.nil? and geo_info.city_name.nil?)
+	if geo_info and geo_info.city_name
 		peer["city"]=geo_info.city_name
 	else
 		$err_logger.warn "GeoIP for #{peer["ip"]} doesn't have city_name info"

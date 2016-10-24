@@ -9,7 +9,10 @@ rabbit_client = Bunny.new(:hostname => "localhost")
 rabbit_client.start
 
 rabbit_channel = rabbit_client.create_channel
-rabbit_slow_online = rabbit_channel.queue("common_online_peers", :durable => true, :auto_delete => false)
+rabbit_slow_online = rabbit_channel.queue("peer_log", :durable => true, :auto_delete => false)
+rabbit_slow_online.delete
+exit
+
 # rabbit_slow_online.delete
 # exit
 prng=Random.new
