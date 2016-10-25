@@ -153,6 +153,8 @@ def update_peers_info(peer)
         end
 end
 
+cnt_init($my_type)
+
 while true
 	rabbit_slow_online.subscribe(:block => true,:manual_ack => true) do |delivery_info, properties, body|
 		peer=JSON.parse(body)
