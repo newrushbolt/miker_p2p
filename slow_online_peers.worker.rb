@@ -1,6 +1,7 @@
 $my_dir=File.expand_path(File.dirname(__FILE__))
 $my_id=ARGV[0] ? ARGV[0] : 1
 $my_name="#{File.basename(__FILE__,".rb")}_#{$my_id}"
+$my_type=$my_name.sub(/\.worker.*/,"")
 
 require 'etc'
 require 'mysql2'
@@ -160,10 +161,12 @@ while true
 		if $validator.v_webrtc_id(peer["webrtc_id"]) and $validator.v_channel_id(peer["channel_id"]) and $validator.v_gg_id(peer["gg_id"]) and $validator.v_ip(peer["ip"]) and $validator.v_ts(peer["timestamp"].to_i/1000)
 			if update_peers_info(peer) ==true
 				$err_logger.info "Peer #{peer["webrtc_id"]} parsed successfull"
+				cnt_up($my_type,"success")				
 			else
 				req="insert into ip_bad_peers values (\"#{peer["webrtc_id"]}\",\"#{peer["channel_id"]}\",\"#{peer["gg_id"]}\",#{Time.now.to_i},INET_ATON(\"#{peer["ip"]}\")) ON DUPLICATE KEY UPDATE last_update=\"#{Time.now.to_i}\";"
 				res=$p2p_db_client.query(req)
 				$err_logger.warn "Parsing peer #{peer["webrtc_id"]} failed"
+				cnt_up($my_type,"failed")
 			end
 		else
 			$err_logger.error "Got incorrect peer:\n#{peer}"
@@ -172,6 +175,7 @@ while true
 			$err_logger.error "gg_id: #{$validator.v_gg_id(peer["gg_id"]).inspect}"
 			$err_logger.error "ip: #{$validator.v_ip(peer["ip"]).inspect}"
 			$err_logger.error "ts: #{$validator.v_ts(peer["timestamp"].to_i/1000).inspect}"
+			cnt_up($my_type,"invalid")
 		end
 		rabbit_channel.acknowledge(delivery_info.delivery_tag, false)
 	end
