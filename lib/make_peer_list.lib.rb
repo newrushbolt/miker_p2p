@@ -148,6 +148,24 @@ def make_peer_list(args)
 	if enough_peers?
 		return end_of_story($return_data)
 	end
+	
+	$err_logger.debug "country peers, ignoring: #{$ignored_peers.to_s}"
+	country_peers=get_country_peers($peers_left + $ignored_peers.count)
+	if country_peers and country_peers.any?
+	    country_peers.each do |country_peer|
+		if ! $ignored_peers.include?(country_peer["webrtc_id"])
+		    peer_line=[country_peer["webrtc_id"],"country"]
+		    $return_data["peer_list"].push(peer_line)
+		    $ignored_peers.push(country_peer["webrtc_id"])
+		    if $return_data["peer_list"].count >= $peers_required
+			break
+		    end
+		end
+	    end
+	end
+	if enough_peers?
+		return end_of_story($return_data)
+	end
 
 	$err_logger.debug "Random peers, ignoring: #{$ignored_peers.to_s}"
 	random_peers=get_random_peers($peers_left + $ignored_peers.count)
@@ -291,6 +309,26 @@ def get_region_peers(peer_count)
 			res=$p2p_db_client.query(req)
 		rescue  => e
     	    $err_logger.error "Error while geting region peers"
+			$err_logger.error e.to_s
+    	    return nil
+        end
+		return res
+    else
+        $err_logger.warn "Peer #{$current_peer["webrtc_id"]} doesnt have correct region info"
+        return nil
+    end
+end
+
+def get_country_peers(peer_count)
+    if $current_peer["country"] and ! $current_peer["country"].nil?
+	    city_logic=($current_peer["city"] and ! $current_peer["city"].nil?) ? "city <> \"#{$current_peer["city"]}\" and" : ""
+	    region_logic=($current_peer["region"] and ! $current_peer["region"].nil?) ? "region <> \"#{$current_peer["region"]}\" and" : ""
+		begin
+			req="select webrtc_id from #{$p2p_db_state_table} where #{city_logic} #{region_logic} country=\"#{$current_peer["country"]}\" and asn<>#{$current_peer["asn"]} and network<>inet_aton(\"#{$current_peer["network"]}\") and netmask<>inet_aton(\"#{$current_peer["netmask"]}\") and channel_id = \"#{$current_peer["channel_id"]}\" and webrtc_id <> \"#{$current_peer["webrtc_id"]}\" limit #{peer_count};"
+			$err_logger.debug req
+			res=$p2p_db_client.query(req)
+		rescue  => e
+    	    $err_logger.error "Error while geting country peers"
 			$err_logger.error e.to_s
     	    return nil
         end
