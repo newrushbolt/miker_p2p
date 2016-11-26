@@ -1,0 +1,19 @@
+[mysqld]
+max_connections=64
+
+tmp_table_size=2G
+max_heap_table_size=4G
+
+query_cache_size=64K
+thread_cache_size=64K
+
+# innodb_use_global_flush_log_at_trx_commit=1
+# innodb_thread_concurrency=8
+# innodb_buffer_pool_size=8G
+
+innodb_buffer_pool_size = 8G
+innodb_log_buffer_size = 256M
+innodb_log_file_size = 1G
+innodb_write_io_threads = 16
+innodb_flush_log_at_trx_commit = 0
+
