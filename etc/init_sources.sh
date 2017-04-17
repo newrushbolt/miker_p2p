@@ -12,7 +12,7 @@ GEM_PATH='/usr/local/rvm/gems/ruby-2.2.4:/usr/local/rvm/gems/ruby-2.2.4@global'
 RUBY_VERSION='ruby-2.2.4'
 
 
-USER='mihailov.s'
+USER='svmikhailov'
 OFFLINE_PEERS_WORKERS=2
 SLOW_ONLINE_PEERS_WORKERS=2
 COMMON_ONLINE_PEERS_WORKERS=4

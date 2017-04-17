@@ -102,7 +102,7 @@ def update_peers_info(peer)
 	if db_got_peer(peer)
 		begin
 			req="update #{$p2p_db_state_table} set last_update = \"#{peer["timestamp"]}\" where webrtc_id= \"#{peer["webrtc_id"]}\" and channel_id = \"#{peer["channel_id"]}\";"
-			res=$p2p_db_client.query(req)	
+			res=$p2p_db_client.query(req)
 			return true
 		rescue  => e
 			$err_logger.error "Error in DB update for #{peer["webrtc_id"]}"

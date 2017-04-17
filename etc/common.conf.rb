@@ -1,14 +1,16 @@
 $log_level=Logger::INFO
-$default_user='mihailov.s'
+$default_user='svmikhailov'
 
 $p2p_db='p2p'
-$p2p_db_host='localhost'
+$p2p_db_host='127.0.0.1'
 $p2p_db_user='p2p'
 $p2p_db_pass='wb5nv6d8'
 $p2p_db_state_table='peer_state'
 $p2p_db_peer_load_table='peer_load_5'
 $p2p_db_bad_peer_table='peer_bad_30'
 $p2p_db_counters_table='worker_counters'
+$p2p_db_online_peers_table='online_peers'
+$p2p_db_peer_lists_table='peer_lists'
 
 $validate_lib='lib/validate.lib.rb'
 
