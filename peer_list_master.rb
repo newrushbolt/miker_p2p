@@ -45,6 +45,13 @@ if ARGV[1]
 end
 
 begin
+	require "#{$my_dir}/#{$counters_lib}"
+rescue => e_main
+	$err_logger.error e_main.to_s
+	raise "Error while loading libs"
+end
+
+begin
 	$rabbit_client = Bunny.new(:hostname => $rabbit_host, :port => $rabbit_port)
 	$rabbit_client.start
 	$rabbit_channel = $rabbit_client.create_channel()
