@@ -62,7 +62,7 @@ rescue => e_main
 end
 
 begin
-	$rabbit_client = Bunny.new(:hostname => "localhost")
+	$rabbit_client = Bunny.new(:hostname => $rabbit_host, :port => $rabbit_port)
 	$rabbit_client.start
 	$rabbit_channel = $rabbit_client.create_channel()
 	$rabbit_common_online  = $rabbit_channel.queue("common_online_peers", :durable => true, :auto_delete => false)

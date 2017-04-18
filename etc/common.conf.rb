@@ -12,6 +12,9 @@ $p2p_db_counters_table='worker_counters'
 $p2p_db_online_peers_table='online_peers'
 $p2p_db_peer_lists_table='peer_lists'
 
+$rabbit_host='127.0.0.1'
+$rabbit_port='5672'
+
 $validate_lib='lib/validate.lib.rb'
 
 $whois_lib='../fast_route_whois/lib/whois.lib.rb'
