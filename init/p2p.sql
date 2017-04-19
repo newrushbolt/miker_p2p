@@ -65,9 +65,9 @@ CREATE TABLE `worker_counters` (
   UNIQUE KEY `uniq_worker` (`worker`,`type`) USING BTREE
 ) ENGINE=MEMORY DEFAULT CHARSET=utf8;
 
-DROP TABLE IF EXISTS peer_list;
+DROP TABLE IF EXISTS peer_lists;
 CREATE TABLE `peer_lists` (
-  `conn_id` varchar(45) NOT NULL,
+  `conn_id` varchar(45) UNIQUE NOT NULL,
   `ts` int(10) unsigned NOT NULL,
   `peer_list` varchar(255) NOT NULL,
   PRIMARY KEY `conn_id_ts` (`conn_id`,`ts`) USING BTREE

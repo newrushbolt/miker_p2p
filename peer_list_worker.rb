@@ -1,28 +1,26 @@
 $my_dir=File.expand_path(File.dirname(__FILE__))
 $my_id=ARGV[0] ? ARGV[0] : 1
 $my_name="#{File.basename(__FILE__,".rb")}_#{$my_id}"
+$my_type=$my_name.sub(/\.worker.*/,"")
 
-require 'sinatra'
 require 'etc'
-require 'json'
 require 'mysql2'
+require 'bunny'
+require 'rubygems'
 require 'logger'
+require 'json'
 
-require "#{Dir.pwd}/etc/common.conf.rb"
+require "#{$my_dir}/etc/common.conf.rb"
 if File.exists?("#{$my_dir}/etc/#{$my_name}.conf.rb")
 	require "#{$my_dir}/etc/#{$my_name}.conf.rb"
 end
-require "#{$my_dir}/lib/make_peer_list.lib.rb"
-
 
 if $default_user and RUBY_PLATFORM.include?('linux')
     begin
         proc_user=Etc.getpwnam($default_user)
         Process::Sys.setuid(proc_user.uid)
     rescue => e
-        puts "Error while changing user to #{$default_user}"
-        puts e.to_s
-		exit
+        raise "Error while changing user to #{$default_user}, #{e.to_s}"
     end
 end
 
@@ -44,20 +42,59 @@ if ARGV[1]
     end
 end
 
-$port=$make_peer_list_start_port + $my_id.to_i
-
-configure do
-	set :port, $port
-	set :bind, '127.0.0.1'
-	set :lock, true
-	set :environment, :production
-	set :logging, false
-	set :dump_errors, true
+begin
+	require $whois_lib
+	$fast_whois=Fast_whois.new
+	require "#{$my_dir}/#{$validate_lib}"
+	require "#{$my_dir}/lib/make_peer_list.lib.rb"
+	require "#{$my_dir}/#{$counters_lib}"
+	$validator=Webrtc_validator.new
+rescue => e_main
+	$err_logger.error e_main.to_s
+	raise "Error while loading libs"
 end
 
-get '/peer_list' do
-  resp=make_peer_list([params['webrtc_id'],params['channel_id'],params['neighbors']])
-  $err_logger.info request.url
-  $err_logger.info resp
-  return resp
+begin
+	$rabbit_client = Bunny.new(:hostname => $rabbit_host, :port => $rabbit_port)
+	$rabbit_client.start
+	$rabbit_channel = $rabbit_client.create_channel()
+	$rabbit_peer_lists_tasks  = $rabbit_channel.queue("peer_lists_tasks", :durable => true, :auto_delete => false)
+rescue => e_main
+	$err_logger.error e_main.to_s
+	raise "Error while connecting to RabbitMQ"
+end
+
+begin
+	$p2p_db_client=Mysql2::Client.new(:host => $p2p_db_host, :database => $p2p_db, :username => $p2p_db_user, :password => $p2p_db_pass)
+rescue => e_main
+	$err_logger.error e_main.to_s
+	raise "Error while connecting to MySQL"
+end
+
+cnt_init($my_type)
+
+def add_peer_list_to_db(list_json)
+	list_raw=JSON.parse(list_json)
+	begin
+		list_encoded=$p2p_db_client.escape(list_json)
+		db_req="insert into #{$p2p_db_peer_lists_table} (conn_id,ts,peer_list) values (\"#{list_raw["webrtc_id"]}\",\"#{Time.now.to_i}\",\"#{list_encoded}\") ON DUPLICATE KEY UPDATE ts=VALUES(ts),peer_list=VALUES(peer_list);"
+		$err_logger.debug "DB req:#{db_req}"
+		db_res=$p2p_db_client.query(db_req)
+		$err_logger.debug "DB resp:#{db_res}"
+		cnt_up($my_type,"success")
+	rescue => e_main
+		$err_logger.error "Cannot add peer list to DB"
+		$err_logger.error e_main.to_s
+		cnt_up($my_type,"failed")
+	end	
+end
+
+while true
+	$rabbit_peer_lists_tasks.subscribe(:block => true,:manual_ack => true) do |delivery_info, properties, body|
+		$err_logger.debug "Got task for peer #{body}"
+		resp=make_peer_list(body.to_s)
+		$err_logger.debug "Got peer_list: #{resp}"
+		add_peer_list_to_db(resp)
+		$rabbit_channel.acknowledge(delivery_info.delivery_tag, false)
+		end
 end

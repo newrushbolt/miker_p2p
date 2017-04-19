@@ -4,7 +4,7 @@ $my_name="#{File.basename(__FILE__,".rb")}_#{$my_id}"
 
 require 'rest-client'
 require 'etc'
-require 'json'
+require 'bunny'
 require 'mysql2'
 require 'logger'
 
@@ -30,18 +30,18 @@ $err_logger=Logger.new("#{$my_dir}/var/log/#{$my_name}.log")
 $err_logger.info "Launched #{$my_name}"
 $err_logger.level=$log_level
 if ARGV[1]
-    case ARGV[1]
-    when "debug"
-	$err_logger.level=Logger::DEBUG
-    when "info"
-	$err_logger.level=Logger::INFO
-    when "warn"
-	$err_logger.level=Logger::WARN
-    when "error"
-	$err_logger.level=Logger::ERROR
-    when "fatal"
-	$err_logger.level=Logger::FATAL
-    end
+	case ARGV[1]
+	when "debug"
+		$err_logger.level=Logger::DEBUG
+	when "info"
+		$err_logger.level=Logger::INFO
+	when "warn"
+		$err_logger.level=Logger::WARN
+	when "error"
+		$err_logger.level=Logger::ERROR
+	when "fatal"
+		$err_logger.level=Logger::FATAL
+	end
 end
 
 begin
@@ -97,8 +97,7 @@ def get_peer_lists()
 	end
 	$err_logger.info "Returning #{local_peer_lists.count} peer lists"
 	$err_logger.debug "Returning peer lists: #{local_peer_lists}"
-	return local_peer_lists
-	
+	return local_peer_lists	
 end
 
 def get_absent_peers(local_online_peers,local_peer_lists)
@@ -114,20 +113,21 @@ def get_outdated_peers(local_online_peers,local_peer_lists)
 	$err_logger.info "Returning #{local_outdated_peers.count} outdated peers"
 	$err_logger.debug "Returning outdated peers: #{local_outdated_peers}"
 	return local_outdated_peers
-	end
+end
 
 def add_lists_tasks(tasks)
 	$err_logger.info "Got #{tasks.count} tasks to add"
 	$err_logger.debug "Got tasks to add: #{tasks}"
 	tasks.each do |task|
-	begin	
-		$err_logger.debug "Adding task: #{task}"
-		$rabbit_peer_lists_tasks.publish(task, :routing_key => $rabbit_peer_lists_tasks.name)
-		cnt_up($my_type,"success")
-	rescue => e_main
-		$err_logger.error "Error while adding task to RabbitMQ"
-		$err_logger.error e_main.to_s
-		cnt_up($my_type,"failed")
+		begin
+			$err_logger.debug "Adding task: #{task}"
+			$rabbit_peer_lists_tasks.publish(task.to_s, :routing_key => $rabbit_peer_lists_tasks.name)
+			cnt_up($my_type,"success")
+		rescue => e_main
+			$err_logger.error "Error while adding task to RabbitMQ"
+			$err_logger.error e_main.to_s
+			cnt_up($my_type,"failed")
+		end
 	end
 end
 
