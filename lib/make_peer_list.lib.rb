@@ -71,7 +71,7 @@ def make_peer_list(conn_id)
 	$current_peer["region"]=peer_res["region"]
 
 	$err_logger.debug "Peer: #{$current_peer}"
-	
+
 	$err_logger.debug "Getting overloaded peers"
 	overloaded_peers=get_overloaded_peers($current_peer["channel_id"])
 	$err_logger.debug "Got overloaded peers:\n#{overloaded_peers}"
@@ -86,7 +86,7 @@ def make_peer_list(conn_id)
 	network_peers=get_network_peers($peers_left + $ignored_peers.count)
 	if network_peers.any?
 	    network_peers.each do |network_peer|
-		peer_line=[network_peer["conn_id"],"network"]
+		peer_line={ :"#{network_peer["conn_id"]}" => "network" }
 		$return_data["peer_list"].push(peer_line)
 		$ignored_peers.push(network_peer["conn_id"])
 		if $return_data["peer_list"].count >= $peers_required
@@ -103,7 +103,7 @@ def make_peer_list(conn_id)
 	if asn_peers.any?
 	    asn_peers.each do |asn_peer|
 		if ! $ignored_peers.include?(asn_peer["conn_id"])
-		    peer_line=[asn_peer["conn_id"],"asn"]
+		    peer_line={ :"#{asn_peer["conn_id"]}" => "asn" }
 		    $return_data["peer_list"].push(peer_line)
 		    $ignored_peers.push(asn_peer["conn_id"])
 		    if $return_data["peer_list"].count >= $peers_required
@@ -121,7 +121,7 @@ def make_peer_list(conn_id)
 	if city_peers and city_peers.any?
 	    city_peers.each do |city_peer|
 		if ! $ignored_peers.include?(city_peer["conn_id"])
-		    peer_line=[city_peer["conn_id"],"city"]
+		    peer_line={ :"#{city_peer["conn_id"]}" => "city" }
 		    $return_data["peer_list"].push(peer_line)
 		    $ignored_peers.push(city_peer["conn_id"])
 		    if $return_data["peer_list"].count >= $peers_required
@@ -139,7 +139,7 @@ def make_peer_list(conn_id)
 	if region_peers and region_peers.any?
 	    region_peers.each do |region_peer|
 		if ! $ignored_peers.include?(region_peer["conn_id"])
-		    peer_line=[region_peer["conn_id"],"region"]
+		    peer_line={ :"#{region_peer["conn_id"]}" => "region" }
 		    $return_data["peer_list"].push(peer_line)
 		    $ignored_peers.push(region_peer["conn_id"])
 		    if $return_data["peer_list"].count >= $peers_required
@@ -157,7 +157,7 @@ def make_peer_list(conn_id)
 	if country_peers and country_peers.any?
 	    country_peers.each do |country_peer|
 		if ! $ignored_peers.include?(country_peer["conn_id"])
-		    peer_line=[country_peer["conn_id"],"country"]
+		    peer_line={ :"#{country_peer["conn_id"]}" => "country" }
 		    $return_data["peer_list"].push(peer_line)
 		    $ignored_peers.push(country_peer["conn_id"])
 		    if $return_data["peer_list"].count >= $peers_required
@@ -175,7 +175,7 @@ def make_peer_list(conn_id)
 	if random_peers.any?
 	    random_peers.each do |random_peer|
 		if ! $ignored_peers.include?(random_peer["conn_id"])
-		    peer_line=[random_peer["conn_id"],"random"]
+		    peer_line={ :"#{random_peer["conn_id"]}" => "random" }
 		    $return_data["peer_list"].push(peer_line)
 		    $ignored_peers.push(random_peer["conn_id"])
 		    if $return_data["peer_list"].count >= $peers_required
