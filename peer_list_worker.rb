@@ -24,8 +24,6 @@ if $default_user and RUBY_PLATFORM.include?('linux')
     end
 end
 
-#$default_user='svmihailov'
-
 $err_logger=Logger.new("#{$my_dir}/var/log/#{$my_name}.log")
 $err_logger.info "Launched #{$my_name}"
 $err_logger.level=$log_level
@@ -96,7 +94,9 @@ while true
 		$err_logger.debug "Got task for peer #{body}"
 		resp=make_peer_list(body.to_s)
 		$err_logger.debug "Got peer_list: #{resp}"
-		add_peer_list_to_db(resp)
+		if resp!=nil
+			add_peer_list_to_db(resp)
+		end
 		$rabbit_channel.acknowledge(delivery_info.delivery_tag, false)
 		end
 end

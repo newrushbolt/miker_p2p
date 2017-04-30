@@ -357,6 +357,8 @@ def get_channel_id(conn_id)
 		channel_id=res.first["channel_id"]
 		$err_logger.debug "Got channel id for peer #{conn_id} : #{channel_id}"
 		return channel_id
+	else
+		$err_logger.warn "Got no info for peer #{conn_id} : #{channel_id}"
+		return nil
 	end
-	return nil
 end
