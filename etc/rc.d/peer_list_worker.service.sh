@@ -19,7 +19,7 @@ cd $APPDIR
 #ruby zabbix.rb $WORKERS >zabbix.json
 
 start() {
-    for (( i = 1; i <= $COMMON_ONLINE_PEERS_WORKERS; i++ ))
+    for (( i = 1; i <= $PEER_LIST_WORKER; i++ ))
     do
         PID_FILE=$APPDIR/var/run/"$NAME"_"$i".pid
 	if [ ! -f "$PID_FILE" ] ; then
@@ -39,7 +39,7 @@ start() {
 }
 
 stop() {
-    for (( i = 1; i <= $COMMON_ONLINE_PEERS_WORKERS; i++ ))
+    for (( i = 1; i <= $PEER_LIST_WORKER; i++ ))
     do
         PID_FILE=$APPDIR/var/run/"$NAME"_"$i".pid
         if [ -f "$PID_FILE" ] ; then
@@ -58,7 +58,7 @@ stop() {
 }
 
 status() {
-    for (( i = 1; i <= $COMMON_ONLINE_PEERS_WORKERS; i++ ))
+    for (( i = 1; i <= $PEER_LIST_WORKER; i++ ))
     do
         PID_FILE=$APPDIR/var/run/"$NAME"_"$i".pid
         if [ -f "$PID_FILE" ] ; then
