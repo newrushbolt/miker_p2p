@@ -12,7 +12,7 @@ class Webrtc_validator
 		if conn_id.nil? or conn_id_true != conn_id
 			return false
 		end
-		if conn_id.match(/[0-9]{1,3}\:[0-9a-z]{5,12}/).to_s == conn_id
+		if conn_id.match(/[a-z0-9]*/).to_s == conn_id
 			return true
 		else
 			return false
@@ -24,7 +24,7 @@ class Webrtc_validator
 		if channel_id.nil? or channel_id_true != channel_id
 			return false
 		end
-		if channel_id.match(/[0-9a-zA-Z_-]{1,32}/).to_s == channel_id
+		if channel_id.match(/.*/).to_s == channel_id
 			return true
 		else
 			return false
