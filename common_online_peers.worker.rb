@@ -82,11 +82,11 @@ end
 
 def db_got_peer(peer)
 	begin
-		req="select * from #{$p2p_db_state_table} where webrtc_id = \"#{peer["webrtc_id"]}\" and channel_id = \"#{peer["channel_id"]}\";"
+		req="select * from #{$p2p_db_state_table} where conn_id = \"#{peer["conn_id"]}\" and channel_id = \"#{peer["channel_id"]}\";"
 		$err_logger.debug req
 		res=$p2p_db_client.query(req)
 	rescue  => e
-		$err_logger.error "Error in SQL request for #{peer["webrtc_id"]}"
+		$err_logger.error "Error in SQL request for #{peer["conn_id"]}"
 		$err_logger.error e.to_s
 		$err_logger.error req
 		return false
@@ -102,11 +102,11 @@ def update_peers_info(peer)
 	peer["timestamp"]=(peer["timestamp"].to_i / 1000).to_i
 	if db_got_peer(peer)
 		begin
-			req="update #{$p2p_db_state_table} set last_update = \"#{peer["timestamp"]}\" where webrtc_id= \"#{peer["webrtc_id"]}\" and channel_id = \"#{peer["channel_id"]}\";"
+			req="update #{$p2p_db_state_table} set last_update = \"#{peer["timestamp"]}\" where conn_id= \"#{peer["conn_id"]}\" and channel_id = \"#{peer["channel_id"]}\";"
 			res=$p2p_db_client.query(req)
 			return true
 		rescue  => e
-			$err_logger.error "Error in DB update for #{peer["webrtc_id"]}"
+			$err_logger.error "Error in DB update for #{peer["conn_id"]}"
 			$err_logger.error e.to_s
 			$err_logger.error req
 			$err_logger.error peer
@@ -159,11 +159,11 @@ def update_peers_info(peer)
 
 	$err_logger.debug "Updating peer_info in SQL"		
 	begin
-		req="insert into #{$p2p_db_state_table} values (\"#{peer["webrtc_id"]}\",\"#{peer["channel_id"]}\",\"#{peer["gg_id"]}\",#{peer["timestamp"]}, INET_ATON(\"#{peer["ip"]}\"),INET_ATON(\"#{peer["network"]}\"),INET_ATON(\"#{peer["netmask"]}\"),#{peer["asn"]},\"#{peer["country"]}\",\"#{peer["region"]}\",\"#{peer["city"]}\") ON DUPLICATE KEY UPDATE channel_id=\"#{peer["channel_id"]}\";"
+		req="insert into #{$p2p_db_state_table} values (\"#{peer["conn_id"]}\",\"#{peer["channel_id"]}\",\"#{peer["gg_id"]}\",#{peer["timestamp"]}, INET_ATON(\"#{peer["ip"]}\"),INET_ATON(\"#{peer["network"]}\"),INET_ATON(\"#{peer["netmask"]}\"),#{peer["asn"]},\"#{peer["country"]}\",\"#{peer["region"]}\",\"#{peer["city"]}\") ON DUPLICATE KEY UPDATE channel_id=\"#{peer["channel_id"]}\";"
 		$err_logger.debug req
 		res=$p2p_db_client.query(req)
 	rescue  => e
-		$err_logger.error "Error in SQL insert for #{peer["webrtc_id"]}"
+		$err_logger.error "Error in SQL insert for #{peer["conn_id"]}"
 		$err_logger.error peer
 		$err_logger.error req
 		$err_logger.error e.to_s
@@ -183,23 +183,23 @@ cnt_init($my_type)
 while true
 	$rabbit_common_online.subscribe(:block => true,:manual_ack => true) do |delivery_info, properties, body|
 		$err_logger.debug "Got info #{body}"
-		fields=["webrtc_id","gg_id", "channel_id","timestamp","ip","unchecked"]
+		fields=["conn_id","gg_id", "channel_id","timestamp","ip","unchecked"]
 		peer=JSON.parse(body)
 		#Temp fix fot ts
 		peer["timestamp"]=Time.now.to_i() * 1000
-		if $validator.v_log_fields(peer,fields) and $validator.v_webrtc_id(peer["webrtc_id"]) and $validator.v_channel_id(peer["channel_id"]) and $validator.v_gg_id(peer["gg_id"]) and $validator.v_ip(peer["ip"]) and $validator.v_ts(peer["timestamp"].to_i/1000)
+		if $validator.v_log_fields(peer,fields) and $validator.v_conn_id(peer["conn_id"]) and $validator.v_channel_id(peer["channel_id"]) and $validator.v_gg_id(peer["gg_id"]) and $validator.v_ip(peer["ip"]) and $validator.v_ts(peer["timestamp"].to_i/1000)
 			if update_peers_info(peer) ==true
-				$err_logger.info "Peer #{peer["webrtc_id"]} parsed successfull"
+				$err_logger.info "Peer #{peer["conn_id"]} parsed successfull"
 				cnt_up($my_type,"success")
 			else
 				$rabbit_slow_online.publish(body, :routing_key => $rabbit_slow_online.name)
-				$err_logger.info "Parsing peer #{peer["webrtc_id"]} failed, pushing to slow queue"
+				$err_logger.info "Parsing peer #{peer["conn_id"]} failed, pushing to slow queue"
 				cnt_up($my_type,"failed")
 			end
 		else
 			$err_logger.error "Got incorrect peer:\n#{peer}"
 			$err_logger.error "Fields: #{$validator.v_log_fields(peer,fields)}"
-			$err_logger.error "webrtc_id: #{$validator.v_webrtc_id(peer["webrtc_id"]).inspect}"
+			$err_logger.error "conn_id: #{$validator.v_conn_id(peer["conn_id"]).inspect}"
 			$err_logger.error "channel_id: #{$validator.v_channel_id(peer["channel_id"]).inspect}"
 			$err_logger.error "gg_id: #{$validator.v_gg_id(peer["gg_id"]).inspect}"
 			$err_logger.error "ip: #{$validator.v_ip(peer["ip"]).inspect}"

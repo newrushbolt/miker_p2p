@@ -18,8 +18,8 @@ exit
 prng=Random.new
 
 for i in (1..ARGV[0].to_i)
-	#data= {:timestamp => Time.now.to_i,:gg_id => ('a'..'z').to_a.shuffle[0,8].join,:webrtc_id => ('a'..'z').to_a.shuffle[0,8].join.to_s,:ip => "#{prng.rand(60..130)}.#{prng.rand(1..252)}.#{prng.rand(1..252)}.#{prng.rand(1..252)}",:channel_id => "614fghd7"}
-		data= {:timestamp => Time.now.to_i,:gg_id => "9d361725-70db-fd76-0bd1-efad7668f032",:webrtc_id => "1:#{('a'..'z').to_a.shuffle[0,9].join.to_s}",:ip => "#{prng.rand(90..97)}.#{prng.rand(1..252)}.#{prng.rand(1..252)}.1",:channel_id => "614fghd7", :unchecked => true}
+	#data= {:timestamp => Time.now.to_i,:gg_id => ('a'..'z').to_a.shuffle[0,8].join,:conn_id => ('a'..'z').to_a.shuffle[0,8].join.to_s,:ip => "#{prng.rand(60..130)}.#{prng.rand(1..252)}.#{prng.rand(1..252)}.#{prng.rand(1..252)}",:channel_id => "614fghd7"}
+		data= {:timestamp => Time.now.to_i,:gg_id => "9d361725-70db-fd76-0bd1-efad7668f032",:conn_id => "1:#{('a'..'z').to_a.shuffle[0,9].join.to_s}",:ip => "#{prng.rand(90..97)}.#{prng.rand(1..252)}.#{prng.rand(1..252)}.1",:channel_id => "614fghd7", :unchecked => true}
 	puts data
 	rabbit_slow_online.publish(JSON.generate(data), :routing_key => rabbit_slow_online.name)
 end

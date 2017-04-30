@@ -77,7 +77,7 @@ def add_peer_list_to_db(list_json)
 	list_raw=JSON.parse(list_json)
 	begin
 		list_encoded=$p2p_db_client.escape(list_json)
-		db_req="insert into #{$p2p_db_peer_lists_table} (conn_id,ts,peer_list) values (\"#{list_raw["webrtc_id"]}\",\"#{Time.now.to_i}\",\"#{list_encoded}\") ON DUPLICATE KEY UPDATE ts=VALUES(ts),peer_list=VALUES(peer_list);"
+		db_req="insert into #{$p2p_db_peer_lists_table} (conn_id,ts,peer_list) values (\"#{list_raw["conn_id"]}\",\"#{Time.now.to_i}\",\"#{list_encoded}\") ON DUPLICATE KEY UPDATE ts=VALUES(ts),peer_list=VALUES(peer_list);"
 		$err_logger.debug "DB req:#{db_req}"
 		db_res=$p2p_db_client.query(db_req)
 		$err_logger.debug "DB resp:#{db_res}"

@@ -49,11 +49,11 @@ end
 
 def db_got_peer(peer)
 	begin
-		req="select * from #{$p2p_db_state_table} where webrtc_id = \"#{peer["webrtc_id"]}\" and channel_id = \"#{peer["channel_id"]}\";"
+		req="select * from #{$p2p_db_state_table} where conn_id = \"#{peer["conn_id"]}\" and channel_id = \"#{peer["channel_id"]}\";"
 		$err_logger.debug req
 		res=$p2p_db_client.query(req)
 	rescue  => e
-		$err_logger.error "Error in SQL request for #{peer["webrtc_id"]}"
+		$err_logger.error "Error in SQL request for #{peer["conn_id"]}"
 		$err_logger.error e.to_s
 		$err_logger.error req
 		return false
@@ -96,26 +96,26 @@ cnt_init($my_type)
 while true
 	rabbit_peer_log.subscribe(:block => true,:manual_ack => true) do |delivery_info, properties, body|
 		peer=JSON.parse(body)
-		fields=["webrtc_id","timestamp","ip","goodPeers","badPeers","perfomance"]
+		fields=["conn_id","timestamp","ip","goodPeers","badPeers","perfomance"]
 		$err_logger.debug "Got log:\n#{peer}"
 		#Temp fix fot ts
 		peer["timestamp"]=Time.now.to_i() *1000
-		if $validator.v_log_fields(peer,fields) and $validator.v_webrtc_id(peer["webrtc_id"]) and $validator.v_ip(peer["ip"]) and $validator.v_ts(peer["timestamp"].to_i/1000)
+		if $validator.v_log_fields(peer,fields) and $validator.v_conn_id(peer["conn_id"]) and $validator.v_ip(peer["ip"]) and $validator.v_ts(peer["timestamp"].to_i/1000)
 		    $err_logger.debug "Finding seed in peer_state db"
 		    if db_got_peer(peer)
 			begin
-			    req="update #{$p2p_db_state_table} set last_update = \"#{peer["timestamp"]}\" where webrtc_id= \"#{peer["webrtc_id"]}\" and channel_id = \"#{peer["channel_id"]}\";"
+			    req="update #{$p2p_db_state_table} set last_update = \"#{peer["timestamp"]}\" where conn_id= \"#{peer["conn_id"]}\" and channel_id = \"#{peer["channel_id"]}\";"
 			    res=$p2p_db_client.query(req)	
 			rescue  => e
-			    $err_logger.error "Error in DB update for #{peer["webrtc_id"]}"
+			    $err_logger.error "Error in DB update for #{peer["conn_id"]}"
 			    $err_logger.error e.to_s
 			    $err_logger.error req
 			    $err_logger.error peer
 			end
 		    else
-			$err_logger.info "Peer #{peer["webrtc_id"]} doesnt exist in peer_state db, adding to common queue"
+			$err_logger.info "Peer #{peer["conn_id"]} doesnt exist in peer_state db, adding to common queue"
 			online_peer={}
-			online_peer["webrtc_id"]=peer["webrtc_id"]
+			online_peer["conn_id"]=peer["conn_id"]
 			online_peer["gg_id"]=peer["gg_id"]
 			online_peer["channel_id"]=peer["channel_id"]
 			online_peer["ip"]=peer["ip"]
@@ -124,9 +124,9 @@ while true
 		    end
 			$err_logger.debug "Updating good_peers in SQL"
 			peer["goodPeers"].each do |good_peer|
-				if good_peer["bytes"] > 0 and $validator.v_webrtc_id(good_peer["webrtc_id"])
+				if good_peer["bytes"] > 0 and $validator.v_conn_id(good_peer["conn_id"])
 					begin
-						req="insert ignore into #{$p2p_db_peer_load_table} values (\"#{good_peer["webrtc_id"]}\",#{peer["timestamp"].to_i/1000},\"#{peer["webrtc_id"]}\",#{good_peer["bytes"]});"
+						req="insert ignore into #{$p2p_db_peer_load_table} values (\"#{good_peer["conn_id"]}\",#{peer["timestamp"].to_i/1000},\"#{peer["conn_id"]}\",#{good_peer["bytes"]});"
 						$err_logger.debug req
 						res=$p2p_db_client.query(req)
 					rescue => e
@@ -141,10 +141,10 @@ while true
 			end
 			$err_logger.debug "Updating bad_peers in SQL"
 			peer["badPeers"].each do |bad_peer|
-			    if $validator.v_webrtc_id(bad_peer["webrtc_id"])
+			    if $validator.v_conn_id(bad_peer["conn_id"])
 				bad_peer["drop_timestamp"]=Time.now.to_i() *1000
 					begin
-						req="insert ignore into #{$p2p_db_bad_peer_table} values (\"#{bad_peer["webrtc_id"]}\",#{bad_peer["drop_timestamp"].to_i/1000},\"#{peer["webrtc_id"]}\");"
+						req="insert ignore into #{$p2p_db_bad_peer_table} values (\"#{bad_peer["conn_id"]}\",#{bad_peer["drop_timestamp"].to_i/1000},\"#{peer["conn_id"]}\");"
 						$err_logger.debug req
 						res=$p2p_db_client.query(req)
 					rescue => e
@@ -161,7 +161,7 @@ while true
 		else
 			$err_logger.error "Got incorrect peer:\n#{peer}"
 			$err_logger.error "Fields validation:#{$validator.v_log_fields(peer,fields).inspect}"
-			$err_logger.error "webrtc_id: #{$validator.v_webrtc_id(peer["webrtc_id"]).inspect}"
+			$err_logger.error "conn_id: #{$validator.v_conn_id(peer["conn_id"]).inspect}"
 			$err_logger.error "ip: #{$validator.v_ip(peer["ip"]).inspect}"
 			$err_logger.error "ts: #{$validator.v_ts(peer["timestamp"].to_i/1000).inspect}"
 			cnt_up($my_type,"invalid")

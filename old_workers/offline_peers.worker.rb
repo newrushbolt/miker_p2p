@@ -70,11 +70,11 @@ end
 
 def remove_peer(peer)
 	begin
-		req="delete from #{$p2p_db_state_table} where webrtc_id = \"#{peer["webrtc_id"]}\";"
+		req="delete from #{$p2p_db_state_table} where conn_id = \"#{peer["conn_id"]}\";"
 		$err_logger.debug req
 		res=$p2p_db_client.query(req)
 	rescue  => e
-		$err_logger.error "Error in SQL removal for #{peer["webrtc_id"]}"
+		$err_logger.error "Error in SQL removal for #{peer["conn_id"]}"
 		$err_logger.error e.to_s
 		$err_logger.error req
 		return false
@@ -94,18 +94,18 @@ while true
 	$rabbit_offline.subscribe(:block => true,:manual_ack => true) do |delivery_info, properties, body|
 		$err_logger.debug "Got info:\n #{body}"
 		peer=JSON.parse(body)
-		fields=["webrtc_id","offline"]
-		if $validator.v_log_fields(peer,fields) and $validator.v_webrtc_id(peer["webrtc_id"])
+		fields=["conn_id","offline"]
+		if $validator.v_log_fields(peer,fields) and $validator.v_conn_id(peer["conn_id"])
 			if remove_peer(peer)==true
-				$err_logger.info "Peer #{peer["webrtc_id"]} removed successfull"
+				$err_logger.info "Peer #{peer["conn_id"]} removed successfull"
 				cnt_up($my_type,"success")
 			else
-				$err_logger.warn "Peer #{peer["webrtc_id"]} removal failed"
+				$err_logger.warn "Peer #{peer["conn_id"]} removal failed"
 				cnt_up($my_type,"failed")
 			end
 		else
 			$err_logger.error "Got incorrect peer:\n#{peer}"
-			$err_logger.error "webrtc_id: #{$validator.v_webrtc_id(peer["webrtc_id"]).inspect}"
+			$err_logger.error "conn_id: #{$validator.v_conn_id(peer["conn_id"]).inspect}"
 			cnt_up($my_type,"invalid")
 		end
 		$rabbit_channel.acknowledge(delivery_info.delivery_tag, false)

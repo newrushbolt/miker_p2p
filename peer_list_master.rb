@@ -70,12 +70,12 @@ end
 
 def get_online_peers()
 	local_online_peers={}
-	db_req="select webrtc_id,last_update from #{$p2p_db_state_table} order by last_update;"
+	db_req="select conn_id,last_update from #{$p2p_db_state_table} order by last_update;"
 	$err_logger.debug "DB req:#{db_req}"
 	db_res=$p2p_db_client.query(db_req)
 	$err_logger.debug "DB resp:#{db_res}"
 	db_res.each do |online_peer|
-		peer={ :"#{online_peer["webrtc_id"]}" => online_peer["last_update"] }
+		peer={ :"#{online_peer["conn_id"]}" => online_peer["last_update"] }
 		$err_logger.debug "Got online peer info: #{peer}"
 		local_online_peers=local_online_peers.merge(peer)
 	end

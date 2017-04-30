@@ -7,12 +7,12 @@ class Webrtc_validator
 		end
 	end
 
-	def v_webrtc_id(webrtc_id)
-		webrtc_id_true=webrtc_id.to_s.encode('utf-8', :invalid => :replace, :undef => :replace)
-		if webrtc_id.nil? or webrtc_id_true != webrtc_id
+	def v_conn_id(conn_id)
+		conn_id_true=conn_id.to_s.encode('utf-8', :invalid => :replace, :undef => :replace)
+		if conn_id.nil? or conn_id_true != conn_id
 			return false
 		end
-		if webrtc_id.match(/[0-9]{1,3}\:[0-9a-z]{5,12}/).to_s == webrtc_id
+		if conn_id.match(/[0-9]{1,3}\:[0-9a-z]{5,12}/).to_s == conn_id
 			return true
 		else
 			return false

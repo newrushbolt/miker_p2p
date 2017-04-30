@@ -67,7 +67,7 @@ begin
 		req="select INET_NTOA(ip) as ip from ip_bad_peers limit 1;"
 		res=$p2p_db_client.query(req)
 	rescue  => e
-		$err_logger.error "Error in SQL insert for #{peer["webrtc_id"]}"
+		$err_logger.error "Error in SQL insert for #{peer["conn_id"]}"
 		$err_logger.error peer
 		$err_logger.error e.to_s
 		$err_logger.error req

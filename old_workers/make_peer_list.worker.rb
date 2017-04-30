@@ -56,7 +56,7 @@ configure do
 end
 
 get '/peer_list' do
-  resp=make_peer_list([params['webrtc_id'],params['channel_id'],params['neighbors']])
+  resp=make_peer_list([params['conn_id'],params['channel_id'],params['neighbors']])
   $err_logger.info request.url
   $err_logger.info resp
   return resp

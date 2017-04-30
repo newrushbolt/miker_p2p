@@ -3,7 +3,7 @@ USE `p2p`;
 
 DROP TABLE IF EXISTS peer_state;
 CREATE TABLE `peer_state` (
-  `webrtc_id` varchar(45) NOT NULL,
+  `conn_id` varchar(45) NOT NULL,
   `channel_id` varchar(45) NOT NULL,
   `gg_id` varchar(45) DEFAULT NULL,
   `last_update` int(10) unsigned NOT NULL,
@@ -14,36 +14,36 @@ CREATE TABLE `peer_state` (
   `country` varchar(45) DEFAULT NULL,
   `region` varchar(45) DEFAULT NULL,
   `city` varchar(45) DEFAULT NULL,
-  UNIQUE KEY `webrtc_id` (`webrtc_id`) USING BTREE,
-  UNIQUE KEY `uniq_id` (`webrtc_id`,`channel_id`) USING BTREE
+  UNIQUE KEY `conn_id` (`conn_id`) USING BTREE,
+  UNIQUE KEY `uniq_id` (`conn_id`,`channel_id`) USING BTREE
 ) ENGINE=MEMORY DEFAULT CHARSET=utf8;
 
 DROP TABLE IF EXISTS ip_bad_peers;
 CREATE TABLE `ip_bad_peers` (
-  `webrtc_id` varchar(45) NOT NULL,
+  `conn_id` varchar(45) NOT NULL,
   `channel_id` varchar(45) NOT NULL,
   `gg_id` varchar(45) DEFAULT NULL,
   `last_update` int(10) unsigned NOT NULL,
   `ip` int(10) unsigned NOT NULL,
-  UNIQUE KEY `webrtc_id` (`webrtc_id`) USING BTREE,
-  UNIQUE KEY `uniq_id` (`webrtc_id`,`channel_id`) USING BTREE
+  UNIQUE KEY `conn_id` (`conn_id`) USING BTREE,
+  UNIQUE KEY `uniq_id` (`conn_id`,`channel_id`) USING BTREE
 ) ENGINE=MEMORY DEFAULT CHARSET=utf8;
 
 DROP TABLE IF EXISTS peer_load_5;
 CREATE TABLE `peer_load_5` (
-  `seed_webrtc_id` varchar(45) NOT NULL,
+  `seed_conn_id` varchar(45) NOT NULL,
   `ts` int(10) unsigned NOT NULL,
-  `peer_webrtc_id` varchar(45) NOT NULL,
+  `peer_conn_id` varchar(45) NOT NULL,
   `bytes` int(10) unsigned NOT NULL,
-  UNIQUE KEY `uniq_ts_ids` (`seed_webrtc_id`,`ts`,`peer_webrtc_id`) USING BTREE
+  UNIQUE KEY `uniq_ts_ids` (`seed_conn_id`,`ts`,`peer_conn_id`) USING BTREE
 ) ENGINE=MEMORY DEFAULT CHARSET=utf8;
 
 DROP TABLE IF EXISTS peer_bad_30;
 CREATE TABLE `peer_bad_30` (
-  `seed_webrtc_id` varchar(45) NOT NULL,
+  `seed_conn_id` varchar(45) NOT NULL,
   `ts` int(10) unsigned NOT NULL,
-  `peer_webrtc_id` varchar(45) NOT NULL,
-  UNIQUE KEY `uniq_ts_ids` (`seed_webrtc_id`,`ts`,`peer_webrtc_id`) USING BTREE
+  `peer_conn_id` varchar(45) NOT NULL,
+  UNIQUE KEY `uniq_ts_ids` (`seed_conn_id`,`ts`,`peer_conn_id`) USING BTREE
 ) ENGINE=MEMORY DEFAULT CHARSET=utf8;
 
 DROP TABLE IF EXISTS net_bad_30;
@@ -73,7 +73,7 @@ CREATE TABLE `peer_lists` (
   PRIMARY KEY `conn_id_ts` (`conn_id`,`ts`) USING BTREE
 ) ENGINE=MEMORY DEFAULT CHARSET=utf8;
 
-#DROP USER IF EXISTS 'p2p'@'localhost';
+DROP USER IF EXISTS 'p2p'@'localhost';
 CREATE USER 'p2p'@'localhost' IDENTIFIED BY 'wb5nv6d8';
 SET SQL_MODE='TRADITIONAL,ALLOW_INVALID_DATES';
 GRANT ALL ON `p2p`.* TO 'p2p'@localhost;
