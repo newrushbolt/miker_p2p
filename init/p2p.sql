@@ -74,7 +74,8 @@ CREATE TABLE `peer_lists` (
   PRIMARY KEY `conn_id_ts` (`conn_id`,`ts`) USING BTREE
 ) ENGINE=MEMORY DEFAULT CHARSET=utf8;
 
-DROP USER IF EXISTS 'p2p'@'localhost';
-CREATE USER 'p2p'@'localhost' IDENTIFIED BY 'wb5nv6d8';
-SET SQL_MODE='TRADITIONAL,ALLOW_INVALID_DATES';
-GRANT ALL ON `p2p`.* TO 'p2p'@localhost;
+	GRANT USAGE ON *.* TO 'p2p'@'localhost';
+	DROP USER 'p2p'@'localhost';
+	CREATE USER 'p2p'@'localhost' IDENTIFIED BY 'wb5nv6d8';
+	SET SQL_MODE='TRADITIONAL,ALLOW_INVALID_DATES';
+	GRANT ALL ON `p2p`.* TO 'p2p'@'localhost';
