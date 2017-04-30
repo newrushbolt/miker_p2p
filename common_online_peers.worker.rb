@@ -125,7 +125,7 @@ def update_peers_info(peer)
 	peer["netmask"]=aton_info["netmask"]
 	peer["asn"]=aton_info["asn"]
 
-	$err_logger.debug "Getting GeoIP info"			
+	$err_logger.debug "Getting GeoIP info"
 	begin
 		geo_info=$geocity_client.city(peer["ip"])
 	rescue  => e
@@ -133,7 +133,7 @@ def update_peers_info(peer)
 		$err_logger.warn e.to_s
 	end
 	
-	$err_logger.debug "Getting GeoIP info"			
+	$err_logger.debug "Getting GeoIP info"
 	begin
 		geo_info=$geocity_client.city(peer["ip"])
 	rescue  => e
@@ -157,7 +157,7 @@ def update_peers_info(peer)
 		$err_logger.warn "GeoIP for #{peer["ip"]} doesn't have city_name info"
 	end
 
-	$err_logger.debug "Updating peer_info in SQL"		
+	$err_logger.debug "Updating peer_info in SQL"
 	begin
 		req="insert into #{$p2p_db_state_table} values (\"#{peer["conn_id"]}\",\"#{peer["channel_id"]}\",\"#{peer["gg_id"]}\",#{peer["timestamp"]}, INET_ATON(\"#{peer["ip"]}\"),INET_ATON(\"#{peer["network"]}\"),INET_ATON(\"#{peer["netmask"]}\"),#{peer["asn"]},\"#{peer["country"]}\",\"#{peer["region"]}\",\"#{peer["city"]}\") ON DUPLICATE KEY UPDATE channel_id=\"#{peer["channel_id"]}\";"
 		$err_logger.debug req
@@ -183,7 +183,7 @@ cnt_init($my_type)
 while true
 	$rabbit_common_online.subscribe(:block => true,:manual_ack => true) do |delivery_info, properties, body|
 		$err_logger.debug "Got info #{body}"
-		fields=["conn_id","gg_id", "channel_id","timestamp","ip","unchecked"]
+		fields=["conn_id","gg_id", "channel_id","timestamp","ip"]
 		peer=JSON.parse(body)
 		#Temp fix fot ts
 		peer["timestamp"]=Time.now.to_i() * 1000

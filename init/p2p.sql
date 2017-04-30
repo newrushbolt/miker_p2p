@@ -16,7 +16,7 @@ CREATE TABLE `peer_state` (
   `region` varchar(45) DEFAULT NULL,
   `city` varchar(45) DEFAULT NULL,
   UNIQUE KEY `conn_id` (`conn_id`) USING BTREE,
-  UNIQUE KEY `uniq_id` (`conn_id`,`channel_id`) USING BTREE
+  PRIMARY KEY `conn_channel` (`conn_id`,`channel_id`)
 ) ENGINE=MEMORY DEFAULT CHARSET=utf8;
 
 DROP TABLE IF EXISTS ip_bad_peers;
@@ -26,8 +26,7 @@ CREATE TABLE `ip_bad_peers` (
   `gg_id` varchar(45) DEFAULT NULL,
   `last_update` int(10) unsigned NOT NULL,
   `ip` int(10) unsigned NOT NULL,
-  UNIQUE KEY `conn_id` (`conn_id`) USING BTREE,
-  UNIQUE KEY `uniq_id` (`conn_id`,`channel_id`) USING BTREE
+  UNIQUE KEY `conn_id` (`conn_id`) USING BTREE
 ) ENGINE=MEMORY DEFAULT CHARSET=utf8;
 
 DROP TABLE IF EXISTS peer_load_5;
@@ -70,9 +69,9 @@ DROP TABLE IF EXISTS peer_lists;
 CREATE TABLE `peer_lists` (
   `conn_id` varchar(45) UNIQUE NOT NULL,
   `ts` int(10) unsigned NOT NULL,
-  `peer_list` varchar(255) NOT NULL,
+  `peer_list` TEXT NOT NULL,
   PRIMARY KEY `conn_id_ts` (`conn_id`,`ts`) USING BTREE
-) ENGINE=MEMORY DEFAULT CHARSET=utf8;
+) ENGINE=INNODB DEFAULT CHARSET=utf8;
 
 	GRANT USAGE ON *.* TO 'p2p'@'localhost';
 	DROP USER 'p2p'@'localhost';
