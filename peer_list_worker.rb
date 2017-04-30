@@ -24,6 +24,8 @@ if $default_user and RUBY_PLATFORM.include?('linux')
     end
 end
 
+#$default_user='svmihailov'
+
 $err_logger=Logger.new("#{$my_dir}/var/log/#{$my_name}.log")
 $err_logger.info "Launched #{$my_name}"
 $err_logger.level=$log_level

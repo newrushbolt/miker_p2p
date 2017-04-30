@@ -1,5 +1,5 @@
 $log_level=Logger::INFO
-$default_user='mihailov.s'
+$default_user='mikailov.s'
 
 $p2p_db='p2p'
 $p2p_db_host='127.0.0.1'
