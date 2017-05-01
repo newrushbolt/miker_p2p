@@ -1,6 +1,7 @@
 $my_dir=File.expand_path(File.dirname(__FILE__))
 $my_id=ARGV[0] ? ARGV[0] : 1
 $my_name="#{File.basename(__FILE__,".rb")}_#{$my_id}"
+$my_type="peer_list_master"
 
 require 'rest-client'
 require 'etc'
@@ -130,6 +131,9 @@ def add_lists_tasks(tasks)
 		end
 	end
 end
+
+
+cnt_init($my_type)
 
 while true
 	#берем текущий список онлайн-пиров
