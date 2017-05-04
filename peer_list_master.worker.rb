@@ -1,7 +1,7 @@
 $my_dir=File.expand_path(File.dirname(__FILE__))
 $my_id=ARGV[0] ? ARGV[0] : 1
 $my_name="#{File.basename(__FILE__,".rb")}_#{$my_id}"
-$my_type="peer_list_master"
+$my_type=$my_name.sub(/\.worker.*/,"")
 
 require 'rest-client'
 require 'etc'

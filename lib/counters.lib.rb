@@ -13,7 +13,7 @@ def cnt_up(worker,type)
 end
 
 def cnt_init(worker)
-	["failed","success","invalid"].each do |field|
+	["failed","success"].each do |field|
 		begin
 			req="insert ignore into #{$p2p_db_counters_table} values (\"#{worker}\",\"#{field}\",0);"
 			$err_logger.debug req

@@ -10,8 +10,8 @@
 # Description:       Starts P2P peer_list_worker
 ### END INIT INFO
 
-NAME='peer_list_worker'
-WORKER='peer_list_worker.rb'
+NAME='peer_list_slave'
+WORKER='peer_list_slave.worker.rb'
 APPDIR='/home/mihailov.s/miker_p2p'
 source $APPDIR/etc/init_sources.sh
 
@@ -19,7 +19,7 @@ cd $APPDIR
 #ruby zabbix.rb $WORKERS >zabbix.json
 
 start() {
-    for (( i = 1; i <= $PEER_LIST_WORKER; i++ ))
+    for (( i = 1; i <= $PEER_LIST_SLAVE_WORKERS; i++ ))
     do
         PID_FILE=$APPDIR/var/run/"$NAME"_"$i".pid
 	if [ ! -f "$PID_FILE" ] ; then
@@ -39,7 +39,7 @@ start() {
 }
 
 stop() {
-    for (( i = 1; i <= $PEER_LIST_WORKER; i++ ))
+    for (( i = 1; i <= $PEER_LIST_SLAVE_WORKERS; i++ ))
     do
         PID_FILE=$APPDIR/var/run/"$NAME"_"$i".pid
         if [ -f "$PID_FILE" ] ; then
@@ -58,7 +58,7 @@ stop() {
 }
 
 status() {
-    for (( i = 1; i <= $PEER_LIST_WORKER; i++ ))
+    for (( i = 1; i <= $PEER_LIST_SLAVE_WORKERS; i++ ))
     do
         PID_FILE=$APPDIR/var/run/"$NAME"_"$i".pid
         if [ -f "$PID_FILE" ] ; then
