@@ -102,9 +102,9 @@ def update_peers_info(peer)
 		aton_info=$slow_whois.get_ip_route(peer["ip"])
 	end
 	if ! aton_info or aton_info.nil? or !(aton_info["network"] and aton_info["netmask"] and aton_info["asn"])
-		 $err_logger.error "IP info for #{peer["ip"]} doesn't have enought info, only this:"
-		 $err_logger.error aton_info.to_s
-		 return false
+		$err_logger.error "IP info for #{peer["ip"]} doesn't have enought info, only this:"
+		$err_logger.error aton_info.to_s
+		return false
 	end
 	peer["network"]=aton_info["network"]
 	peer["netmask"]=aton_info["netmask"]

@@ -194,7 +194,6 @@ def make_peer_list(conn_id)
 end
 
 def end_of_story(data)
-    #$p2p_db_client.close
     return JSON.generate(data)
 end
 
@@ -227,7 +226,7 @@ end
 
 def get_network_peers(peer_count)
     begin
-	req="select conn_id from #{$p2p_db_state_table} where network=inet_aton(\"#{$current_peer["network"]}\") and netmask=inet_aton(\"#{$current_peer["netmask"]}\") and channel_id = \"#{$current_peer["channel_id"]}\" and conn_id <> \"#{$current_peer["conn_id"]}\" limit #{peer_count};"
+	req="select conn_id from #{$p2p_db_state_table} where and asn <> 0 network=inet_aton(\"#{$current_peer["network"]}\") and netmask=inet_aton(\"#{$current_peer["netmask"]}\") and channel_id = \"#{$current_peer["channel_id"]}\" and conn_id <> \"#{$current_peer["conn_id"]}\" limit #{peer_count};"
 	$err_logger.debug req
 	res=$p2p_db_client.query(req)
     rescue  => e
@@ -240,7 +239,7 @@ end
 
 def get_asn_peers(peer_count)
     begin
-	req="select conn_id from #{$p2p_db_state_table} where asn=#{$current_peer["asn"]} and network<>inet_aton(\"#{$current_peer["network"]}\") and netmask<>inet_aton(\"#{$current_peer["netmask"]}\") and channel_id = \"#{$current_peer["channel_id"]}\" and conn_id <> \"#{$current_peer["conn_id"]}\" limit #{peer_count};"
+	req="select conn_id from #{$p2p_db_state_table} where asn=#{$current_peer["asn"]} and asn <> 0 and network<>inet_aton(\"#{$current_peer["network"]}\") and netmask<>inet_aton(\"#{$current_peer["netmask"]}\") and channel_id = \"#{$current_peer["channel_id"]}\" and conn_id <> \"#{$current_peer["conn_id"]}\" limit #{peer_count};"
 	$err_logger.debug req
 	res=$p2p_db_client.query(req)
     rescue  => e
