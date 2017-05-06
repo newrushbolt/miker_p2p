@@ -97,11 +97,11 @@ cnt_init($my_type)
 while true
 	rabbit_peer_log.subscribe(:block => true,:manual_ack => true) do |delivery_info, properties, body|
 		peer=JSON.parse(body)
-		fields=["conn_id","timestamp","ip","goodPeers","badPeers","perfomance"]
+		fields=["conn_id","timestamp","good_peer","bad_peer"]
 		$err_logger.debug "Got log:\n#{peer}"
 		#Temp fix fot ts
 		peer["timestamp"]=Time.now.to_i() *1000
-		if $validator.v_log_fields(peer,fields) and $validator.v_conn_id(peer["conn_id"]) and $validator.v_ip(peer["ip"]) and $validator.v_ts(peer["timestamp"].to_i/1000)
+#		if $validator.v_log_fields(peer,fields) and $validator.v_conn_id(peer["conn_id"]) and $validator.v_ts(peer["timestamp"].to_i/1000)
 		    $err_logger.debug "Finding seed in peer_state db"
 		    if db_got_peer(peer)
 			begin
@@ -124,7 +124,8 @@ while true
 			rabbit_common_online.publish(JSON.generate(online_peer), :routing_key => rabbit_common_online.name)
 		    end
 			$err_logger.debug "Updating good_peers in SQL"
-			peer["good_peer"].each do |good_peer|
+			#peer["good_peer"]
+			[].each do |good_peer|
 				if good_peer["bytes"] > 0 and $validator.v_conn_id(good_peer["conn_id"])
 					begin
 						req="insert ignore into #{$p2p_db_peer_load_table} values (\"#{good_peer["conn_id"]}\",#{peer["timestamp"].to_i},\"#{peer["conn_id"]}\",#{good_peer["bytes"]});"
@@ -141,7 +142,8 @@ while true
 				end
 			end
 			$err_logger.debug "Updating bad_peers in SQL"
-			peer["bad_peer"].each do |bad_peer|
+			#peer["bad_peer"]
+			[].each do |bad_peer|
 			    if $validator.v_conn_id(bad_peer["conn_id"])
 				bad_peer["drop_timestamp"]=Time.now.to_i() *1000
 					begin
@@ -159,14 +161,14 @@ while true
 			    end
 			end
 			cnt_up($my_type,"success")
-		else
-			$err_logger.error "Got incorrect peer:\n#{peer}"
-			$err_logger.error "Fields validation:#{$validator.v_log_fields(peer,fields).inspect}"
-			$err_logger.error "conn_id: #{$validator.v_conn_id(peer["conn_id"]).inspect}"
-			$err_logger.error "ip: #{$validator.v_ip(peer["ip"]).inspect}"
-			$err_logger.error "ts: #{$validator.v_ts(peer["timestamp"].to_i/1000).inspect}"
+#		else
+#			$err_logger.error "Got incorrect peer:\n#{peer}"
+#			$err_logger.error "Fields validation:#{$validator.v_log_fields(peer,fields).inspect}"
+#			$err_logger.error "conn_id: #{$validator.v_conn_id(peer["conn_id"]).inspect}"
+#			$err_logger.error "ip: #{$validator.v_ip(peer["ip"]).inspect}"
+#			$err_logger.error "ts: #{$validator.v_ts(peer["timestamp"].to_i/1000).inspect}"
 			cnt_up($my_type,"invalid")
-		end
+#		end
 		rabbit_channel.acknowledge(delivery_info.delivery_tag, false)
 	end
 end

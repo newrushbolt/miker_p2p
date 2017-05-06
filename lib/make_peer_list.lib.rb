@@ -84,7 +84,7 @@ def make_peer_list(conn_id)
 	
 	$err_logger.debug "Network peers, ignoring: #{$ignored_peers.to_s}"
 	network_peers=get_network_peers($peers_left + $ignored_peers.count)
-	if network_peers.any?
+	if network_peers and network_peers.any?
 	    network_peers.each do |network_peer|
 		peer_line={ :"#{network_peer["conn_id"]}" => "network" }
 		$return_data["peer_list"].push(peer_line)
@@ -226,7 +226,7 @@ end
 
 def get_network_peers(peer_count)
     begin
-	req="select conn_id from #{$p2p_db_state_table} where and asn <> 0 network=inet_aton(\"#{$current_peer["network"]}\") and netmask=inet_aton(\"#{$current_peer["netmask"]}\") and channel_id = \"#{$current_peer["channel_id"]}\" and conn_id <> \"#{$current_peer["conn_id"]}\" limit #{peer_count};"
+	req="select conn_id from #{$p2p_db_state_table} where asn <> 0 and network=inet_aton(\"#{$current_peer["network"]}\") and netmask=inet_aton(\"#{$current_peer["netmask"]}\") and channel_id = \"#{$current_peer["channel_id"]}\" and conn_id <> \"#{$current_peer["conn_id"]}\" limit #{peer_count};"
 	$err_logger.debug req
 	res=$p2p_db_client.query(req)
     rescue  => e

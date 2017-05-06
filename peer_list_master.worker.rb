@@ -148,7 +148,7 @@ while true
 	outdated_peers=get_outdated_peers(new_online_peers,new_peer_lists)
 	#генерим для тех, для кого устарели
 	add_lists_tasks(outdated_peers.keys)
-	sleep(30)
+	sleep(15)
 end
 
 
