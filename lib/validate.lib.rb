@@ -21,7 +21,7 @@ public
 		$err_logger.debug "Running #{__method__}"
 		fields=["Conn_id","P2p","Ltime"]
 		$err_logger.debug peer
-		if v_log_fields(peer,fields) and v_conn_id(peer["Conn_id"]) and v_ltime(peer["Ltime"]) and v_ltime(good_peer["P2p"])
+		if v_log_fields(peer,fields) and v_conn_id(peer["Conn_id"]) and v_ltime(peer["Ltime"]) and v_ltime(peer["P2p"])
 			$err_logger.debug "Data #{peer} is VALID"
 			return true
 		end

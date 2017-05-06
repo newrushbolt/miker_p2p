@@ -24,7 +24,6 @@ class Common_worker
 		@my_id=worker_id
 		@my_name="#{File.basename($0,".rb")}_#{@my_id}"
 		@my_type=@my_name.sub(/\.worker.*/,"")
-		p @my_dir
 	end
 
 	def i_logger(level)

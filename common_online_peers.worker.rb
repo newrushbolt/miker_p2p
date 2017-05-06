@@ -46,7 +46,8 @@ class Common_online_peer_worker < Common_worker
 		peer["network"]=aton_info["network"]
 		peer["netmask"]=aton_info["netmask"]
 		peer["asn"]=aton_info["asn"]
-
+		
+		geo_info=nil
 		$err_logger.debug "Getting GeoIP info"
 		begin
 			geo_info=@geocity_client.city(peer["ip"])
