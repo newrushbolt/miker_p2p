@@ -43,10 +43,6 @@ if ARGV[1]
     end
 end
 
-def validate_log_entry(log)
-	
-end
-
 def db_got_peer(peer)
 	begin
 		req="select * from #{$p2p_db_state_table} where conn_id = \"#{peer["conn_id"]}\" and channel_id = \"#{peer["channel_id"]}\";"
@@ -97,78 +93,71 @@ cnt_init($my_type)
 while true
 	rabbit_peer_log.subscribe(:block => true,:manual_ack => true) do |delivery_info, properties, body|
 		peer=JSON.parse(body)
-		fields=["conn_id","timestamp","good_peer","bad_peer"]
 		$err_logger.debug "Got log:\n#{peer}"
-		#Temp fix fot ts
-		peer["timestamp"]=Time.now.to_i() *1000
-#		if $validator.v_log_fields(peer,fields) and $validator.v_conn_id(peer["conn_id"]) and $validator.v_ts(peer["timestamp"].to_i/1000)
-		    $err_logger.debug "Finding seed in peer_state db"
-		    if db_got_peer(peer)
-			begin
-			    req="update #{$p2p_db_state_table} set last_update = \"#{peer["timestamp"]}\" where conn_id= \"#{peer["conn_id"]}\" and channel_id = \"#{peer["channel_id"]}\";"
-			    res=$p2p_db_client.query(req)	
-			rescue  => e
-			    $err_logger.error "Error in DB update for #{peer["conn_id"]}"
-			    $err_logger.error e.to_s
-			    $err_logger.error req
-			    $err_logger.error peer
-			end
-		    else
-			$err_logger.info "Peer #{peer["conn_id"]} doesnt exist in peer_state db, adding to common queue"
-			online_peer={}
-			online_peer["conn_id"]=peer["conn_id"]
-			online_peer["gg_id"]=peer["gg_id"]
-			online_peer["channel_id"]=peer["channel_id"]
-			online_peer["ip"]=peer["ip"]
-			online_peer["timestamp"]=peer["timestamp"]
-			rabbit_common_online.publish(JSON.generate(online_peer), :routing_key => rabbit_common_online.name)
-		    end
-			$err_logger.debug "Updating good_peers in SQL"
-			#peer["good_peer"]
-			[].each do |good_peer|
-				if good_peer["bytes"] > 0 and $validator.v_conn_id(good_peer["conn_id"])
-					begin
-						req="insert ignore into #{$p2p_db_peer_load_table} values (\"#{good_peer["conn_id"]}\",#{peer["timestamp"].to_i},\"#{peer["conn_id"]}\",#{good_peer["bytes"]});"
-						$err_logger.debug req
-						res=$p2p_db_client.query(req)
-					rescue => e
-						$err_logger.error "Error in SQL insert for good_peer: #{good_peer}"
-						$err_logger.error peer
-						$err_logger.error req
-						$err_logger.error e.to_s
-					end
-					aff=$p2p_db_client.affected_rows
-					$err_logger.debug "#{aff} rows affected"
+		if $validator.v_peer_log_entry(peer)
+			$err_logger.debug "Finding seed in peer_state db"
+			if db_got_peer(peer)
+				begin
+					req="update #{$p2p_db_state_table} set last_update = \"#{peer["timestamp"]}\" where conn_id= \"#{peer["conn_id"]}\" and channel_id = \"#{peer["channel_id"]}\";"
+					res=$p2p_db_client.query(req)	
+				rescue  => e
+					$err_logger.error "Error in DB update for #{peer["conn_id"]}"
+					$err_logger.error e.to_s
+					$err_logger.error req
+					$err_logger.error peer
 				end
+		    else
+				$err_logger.info "Peer #{peer["conn_id"]} doesnt exist in peer_state db, adding to common queue"
+				online_peer={}
+				online_peer["conn_id"]=peer["conn_id"]
+				online_peer["gg_id"]=peer["gg_id"]
+				online_peer["channel_id"]=peer["channel_id"]
+				online_peer["ip"]=peer["ip"]
+				online_peer["timestamp"]=peer["timestamp"]
+				rabbit_common_online.publish(JSON.generate(online_peer), :routing_key => rabbit_common_online.name, :persistent => false)
+		    end
+			$err_logger.debug "Updating good_peer in SQL"
+			good_peer=peer["good_peer"]
+			puts good_peer["Conn_id"]
+			if good_peer["P2p"].to_i > 0 and $validator.v_conn_id(good_peer["Conn_id"])
+				begin
+					req="insert ignore into #{$p2p_db_peer_load_table} values (\"#{good_peer["Conn_id"]}\",#{peer["timestamp"].to_i},\"#{peer["conn_id"]}\",#{good_peer["P2p"]},#{good_peer["Ltime"]});"
+					$err_logger.debug req
+					res=$p2p_db_client.query(req)
+				rescue => e
+					$err_logger.error "Error in SQL insert for good_peer: #{good_peer}"
+					$err_logger.error peer
+					$err_logger.error req
+					$err_logger.error e.to_s
+				end
+				aff=$p2p_db_client.affected_rows
+				$err_logger.debug "#{aff} rows affected"
 			end
 			$err_logger.debug "Updating bad_peers in SQL"
-			#peer["bad_peer"]
-			[].each do |bad_peer|
-			    if $validator.v_conn_id(bad_peer["conn_id"])
-				bad_peer["drop_timestamp"]=Time.now.to_i() *1000
-					begin
-						req="insert ignore into #{$p2p_db_bad_peer_table} values (\"#{bad_peer["conn_id"]}\",#{bad_peer["drop_timestamp"].to_i},\"#{peer["conn_id"]}\");"
-						$err_logger.debug req
-						res=$p2p_db_client.query(req)
-					rescue => e
-						$err_logger.error "Error in SQL insert for bad_peer: #{bad_peer}"
-						$err_logger.error peer
-						$err_logger.error req
-						$err_logger.error e.to_s
-					end
-					aff=$p2p_db_client.affected_rows
-					$err_logger.debug "#{aff} rows affected"
-			    end
+			bad_peer=peer["bad_peer"]
+			if $validator.v_conn_id(bad_peer["Conn_id"])
+				begin
+					req="insert ignore into #{$p2p_db_bad_peer_table} values (\"#{bad_peer["Conn_id"]}\",#{peer["timestamp"].to_i},\"#{peer["conn_id"]}\");"
+					$err_logger.debug req
+					res=$p2p_db_client.query(req)
+				rescue => e
+					$err_logger.error "Error in SQL insert for bad_peer: #{bad_peer}"
+					$err_logger.error peer
+					$err_logger.error req
+					$err_logger.error e.to_s
+				end
+				aff=$p2p_db_client.affected_rows
+				$err_logger.debug "#{aff} rows affected"
 			end
 			cnt_up($my_type,"success")
-#		else
-#			$err_logger.error "Got incorrect peer:\n#{peer}"
-#			$err_logger.error "Fields validation:#{$validator.v_log_fields(peer,fields).inspect}"
-#			$err_logger.error "conn_id: #{$validator.v_conn_id(peer["conn_id"]).inspect}"
-#			$err_logger.error "ip: #{$validator.v_ip(peer["ip"]).inspect}"
-#			$err_logger.error "ts: #{$validator.v_ts(peer["timestamp"].to_i/1000).inspect}"
+		else
+			$err_logger.error "Got incorrect peer:\n#{peer}"
+			$err_logger.error "Fields validation:#{$validator.v_log_fields(peer,fields).inspect}"
+			$err_logger.error "conn_id: #{$validator.v_conn_id(peer["conn_id"]).inspect}"
+			$err_logger.error "ip: #{$validator.v_ip(peer["ip"]).inspect}"
+			$err_logger.error "ts: #{$validator.v_ts(peer["timestamp"].to_i).inspect}"
 			cnt_up($my_type,"invalid")
-#		end
+		end
 		rabbit_channel.acknowledge(delivery_info.delivery_tag, false)
 	end
 end

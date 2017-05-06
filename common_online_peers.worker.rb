@@ -99,7 +99,7 @@ def db_got_peer(peer)
 end
 
 def update_peers_info(peer)
-	peer["timestamp"]=(peer["timestamp"].to_i / 1000).to_i
+	peer["timestamp"]=peer["timestamp"].to_i
 	if db_got_peer(peer)
 		begin
 			req="update #{$p2p_db_state_table} set last_update = \"#{peer["timestamp"]}\" where conn_id= \"#{peer["conn_id"]}\" and channel_id = \"#{peer["channel_id"]}\";"

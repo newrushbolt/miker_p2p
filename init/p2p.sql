@@ -35,6 +35,7 @@ CREATE TABLE `peer_load_5` (
   `ts` int(10) unsigned NOT NULL,
   `peer_conn_id` varchar(45) NOT NULL,
   `bytes` int(10) unsigned NOT NULL,
+  `ltime` int(10) unsigned NOT NULL,
   UNIQUE KEY `uniq_ts_ids` (`seed_conn_id`,`ts`,`peer_conn_id`) USING BTREE
 ) ENGINE=MEMORY DEFAULT CHARSET=utf8;
 

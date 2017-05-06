@@ -162,7 +162,7 @@ while true
 		#Temp fix fot ts
 		peer["timestamp"]=Time.now.to_i() * 1000
 		if $validator.v_conn_id(peer["conn_id"]) and $validator.v_channel_id(peer["channel_id"]) and $validator.v_gg_id(peer["gg_id"]) and $validator.v_ip(peer["ip"]) and $validator.v_ts(peer["timestamp"].to_i/1000)
-			if update_peers_info(peer) ==true
+			if update_peers_info(peer) == true
 				$err_logger.info "Peer #{peer["conn_id"]} parsed successfull"
 				cnt_up($my_type,"success")
 			else
