@@ -1,6 +1,6 @@
 $log_level=Logger::INFO
-$default_user='mihailov.s'
-#$default_user='svmikhailov'
+#$default_user='mihailov.s'
+$default_user='svmikhailov'
 
 $p2p_db='p2p'
 $p2p_db_host='127.0.0.1'
@@ -18,11 +18,11 @@ $rabbit_port='5672'
 
 $validate_lib='lib/validate.lib.rb'
 $counters_lib='lib/counters.lib.rb'
-
 $whois_lib='../fast_route_whois/lib/whois.lib.rb'
-$make_peer_list_start_port=3500
-$seed_max_drops_30=30
-$seed_max_peers_5=15
+
+$seed_max_drops_30=20
+$seed_max_peers_5=10
+$peer_list_outdate_period=90
 
 $private_nets=["10.0.0.0/8","172.16.0.0/12","192.168.0.0/16","127.0.0.0/8", "169.254.0.0/16","224.0.0.0/4","240.0.0.0/4"]
 
