@@ -115,7 +115,7 @@ class Common_online_peer_worker < Common_worker
 					cnt_up("failed")
 				end
 				@rabbit_channel.acknowledge(delivery_info.delivery_tag, false)
-				end
+			end
 		end
 	end
 end
