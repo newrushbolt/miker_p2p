@@ -58,7 +58,7 @@ class Offline_peers_worker < Common_worker
 				$err_logger.debug "Got info:\n #{body}"
 				peer=JSON.parse(body)
 				fields=["conn_id"]
-				if $validator.v_log_fields(peer,fields) and $validator.v_conn_id(peer["conn_id"])
+				if @validator.v_log_fields(peer,fields) and @validator.v_conn_id(peer["conn_id"])
 					if remove_peer(peer["conn_id"]) and remove_list(peer["conn_id"])
 						$err_logger.info "Peer #{peer["conn_id"]} removed successfull"
 						cnt_up($my_type,"success")
