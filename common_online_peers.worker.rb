@@ -1,6 +1,7 @@
 require "#{File.expand_path(File.dirname(__FILE__))}/lib/worker.lib.rb"
 
 class Common_online_peer_worker < Common_worker
+
 	private
 	def db_got_peer(peer)
 		begin
@@ -121,6 +122,6 @@ class Common_online_peer_worker < Common_worker
 end
 
 current_worker=Common_online_peer_worker.new(\
-worker_id: ARGV[0],worker_log_level: ARGV[1], whois_client: true,\
+worker_id: ARGV[0],worker_log_level: ARGV[1], fast_whois_client: true,\
 bunny_queues: ["common_online_peers","slow_online_peers"],geocity_client: true)
 current_worker.run

@@ -1,6 +1,6 @@
 class Common_worker
 
-	def initialize(worker_id: 1,worker_log_level: nil,p2p_db: true, whois_client: false, bunny_queues: [],geocity_client: false)
+	def initialize(worker_id: 1,worker_log_level: nil,p2p_db: true, slow_whois_client: false, fast_whois_client: false, bunny_queues: [],geocity_client: false)
 		require 'rubygems'
 		require 'etc'
 		require 'ipaddr'
@@ -12,7 +12,8 @@ class Common_worker
 		i_chuser
 		i_validator
 		if p2p_db then i_p2p_db end
-		if whois_client then i_whois_client end
+		if fast_whois_client then i_f_whois_client end
+		if slow_whois_client then i_s_whois_client end
 		if bunny_queues.any?
 			@bunny_workers={}
 			i_bunny(bunny_queues)
@@ -81,13 +82,23 @@ class Common_worker
 		@validator=Webrtc_validator.new
 	end
 
-	def i_whois_client
+	def i_f_whois_client
 		begin
 			require $whois_lib
 			@fast_whois=Fast_whois.new
 		rescue => e_main
 			$err_logger.error e_main.to_s
-			raise "Error while loading whois client"
+			raise "Error while loading fast whois client"
+		end
+	end
+
+	def i_s_whois_client
+		begin
+			require $whois_lib
+			@slow_whois=Slow_whois.new
+		rescue => e_main
+			$err_logger.error e_main.to_s
+			raise "Error while loading slow whois client"
 		end
 	end
 
