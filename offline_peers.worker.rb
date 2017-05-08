@@ -61,15 +61,15 @@ class Offline_peers_worker < Common_worker
 				if @validator.v_log_fields(peer,fields) and @validator.v_conn_id(peer["conn_id"])
 					if remove_peer(peer["conn_id"]) and remove_list(peer["conn_id"])
 						$err_logger.info "Peer #{peer["conn_id"]} removed successfull"
-						cnt_up($my_type,"success")
+						cnt_up("success")
 					else
 						$err_logger.warn "Peer #{peer["conn_id"]} removal failed"
-						cnt_up($my_type,"failed")
+						cnt_up("failed")
 					end
 				else
 					$err_logger.error "Got incorrect peer:\n#{peer}"
 					$err_logger.error "conn_id: #{$validator.v_conn_id(peer["conn_id"]).inspect}"
-					cnt_up($my_type,"invalid")
+					cnt_up("failed")
 				end
 				@rabbit_channel.acknowledge(delivery_info.delivery_tag, false)
 			end
