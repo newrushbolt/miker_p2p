@@ -20,6 +20,7 @@ class Peer_list_slave_worker < Common_worker
 		end
 	end
 
+	public
 	def run
 		while true
 			@bunny_workers["peer_lists_tasks"].subscribe(:block => true,:manual_ack => true) do |delivery_info, properties, body|
