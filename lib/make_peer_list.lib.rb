@@ -6,7 +6,7 @@ def make_peer_list(conn_id)
 		# $return_data["Error"]="Not enough arguments"
 		# return JSON.generate($return_data)
 	# end
-	#	$p2p_db_client=Mysql2::Client.new(:host => $p2p_db_host, :database => $p2p_db, :username => $p2p_db_user, :password => $p2p_db_pass)
+	#	@p2p_db_client=Mysql2::Client.new(:host => $p2p_db_host, :database => $p2p_db, :username => $p2p_db_user, :password => $p2p_db_pass)
 
 	$current_peer={}
 	$current_peer["conn_id"]=conn_id
@@ -24,7 +24,7 @@ def make_peer_list(conn_id)
 	begin
 		req="select count(conn_id) as webrtc_count from #{$p2p_db_state_table} where conn_id <> \"#{$current_peer["conn_id"]}\" and channel_id = \"#{$current_peer["channel_id"]}\";"
 		$err_logger.debug req
-		res=$p2p_db_client.query(req)
+		res=@p2p_db_client.query(req)
 	rescue => e
 		$err_logger.error "Error while counting peers in SQL"
 		$err_logger.error e.to_s
@@ -37,7 +37,7 @@ def make_peer_list(conn_id)
 	begin
 		req="select conn_id,channel_id,gg_id,last_update,inet_ntoa(ip) as ip,inet_ntoa(network) as network,inet_ntoa(netmask) as netmask,asn,country,region from #{$p2p_db_state_table} where conn_id = \"#{$current_peer["conn_id"]}\";"
 		$err_logger.debug req
-		res=$p2p_db_client.query(req)
+		res=@p2p_db_client.query(req)
 	rescue => e
 		$err_logger.error "Error while geting peer info"
 		$err_logger.error e.to_s
@@ -119,16 +119,16 @@ def make_peer_list(conn_id)
 	$err_logger.debug "City peers, ignoring: #{$ignored_peers.to_s}"
 	city_peers=get_city_peers($peers_left + $ignored_peers.count)
 	if city_peers and city_peers.any?
-	    city_peers.each do |city_peer|
-		if ! $ignored_peers.include?(city_peer["conn_id"])
-		    peer_line={ :"#{city_peer["conn_id"]}" => "city" }
-		    $return_data["peer_list"].push(peer_line)
-		    $ignored_peers.push(city_peer["conn_id"])
-		    if $return_data["peer_list"].count >= $peers_required
-			break
-		    end
+		city_peers.each do |city_peer|
+			if ! $ignored_peers.include?(city_peer["conn_id"])
+				peer_line={ :"#{city_peer["conn_id"]}" => "city" }
+				$return_data["peer_list"].push(peer_line)
+				$ignored_peers.push(city_peer["conn_id"])
+				if $return_data["peer_list"].count >= $peers_required
+					break
+				end
+			end
 		end
-	    end
 	end
 	if enough_peers?
 		return end_of_story($return_data)
@@ -137,15 +137,15 @@ def make_peer_list(conn_id)
 	$err_logger.debug "region peers, ignoring: #{$ignored_peers.to_s}"
 	region_peers=get_region_peers($peers_left + $ignored_peers.count)
 	if region_peers and region_peers.any?
-	    region_peers.each do |region_peer|
-		if ! $ignored_peers.include?(region_peer["conn_id"])
-		    peer_line={ :"#{region_peer["conn_id"]}" => "region" }
-		    $return_data["peer_list"].push(peer_line)
-		    $ignored_peers.push(region_peer["conn_id"])
-		    if $return_data["peer_list"].count >= $peers_required
-			break
-		    end
-		end
+		region_peers.each do |region_peer|
+			if ! $ignored_peers.include?(region_peer["conn_id"])
+				peer_line={ :"#{region_peer["conn_id"]}" => "region" }
+				$return_data["peer_list"].push(peer_line)
+				$ignored_peers.push(region_peer["conn_id"])
+				if $return_data["peer_list"].count >= $peers_required
+					break
+				end
+			end
 	    end
 	end
 	if enough_peers?
@@ -155,16 +155,16 @@ def make_peer_list(conn_id)
 	$err_logger.debug "country peers, ignoring: #{$ignored_peers.to_s}"
 	country_peers=get_country_peers($peers_left + $ignored_peers.count)
 	if country_peers and country_peers.any?
-	    country_peers.each do |country_peer|
-		if ! $ignored_peers.include?(country_peer["conn_id"])
-		    peer_line={ :"#{country_peer["conn_id"]}" => "country" }
-		    $return_data["peer_list"].push(peer_line)
-		    $ignored_peers.push(country_peer["conn_id"])
-		    if $return_data["peer_list"].count >= $peers_required
-			break
-		    end
+		country_peers.each do |country_peer|
+			if ! $ignored_peers.include?(country_peer["conn_id"])
+				peer_line={ :"#{country_peer["conn_id"]}" => "country" }
+				$return_data["peer_list"].push(peer_line)
+				$ignored_peers.push(country_peer["conn_id"])
+				if $return_data["peer_list"].count >= $peers_required
+					break
+				end
+			end
 		end
-	    end
 	end
 	if enough_peers?
 		return end_of_story($return_data)
@@ -173,16 +173,16 @@ def make_peer_list(conn_id)
 	$err_logger.debug "Random peers, ignoring: #{$ignored_peers.to_s}"
 	random_peers=get_random_peers($peers_left + $ignored_peers.count)
 	if random_peers.any?
-	    random_peers.each do |random_peer|
-		if ! $ignored_peers.include?(random_peer["conn_id"])
-		    peer_line={ :"#{random_peer["conn_id"]}" => "random" }
-		    $return_data["peer_list"].push(peer_line)
-		    $ignored_peers.push(random_peer["conn_id"])
-		    if $return_data["peer_list"].count >= $peers_required
-			break
-		    end
+		random_peers.each do |random_peer|
+			if ! $ignored_peers.include?(random_peer["conn_id"])
+				peer_line={ :"#{random_peer["conn_id"]}" => "random" }
+				$return_data["peer_list"].push(peer_line)
+				$ignored_peers.push(random_peer["conn_id"])
+				if $return_data["peer_list"].count >= $peers_required
+					break
+				end
+			end
 		end
-	    end
 	end
 	
 	if enough_peers?
@@ -198,147 +198,147 @@ def end_of_story(data)
 end
 
 def enough_peers?
-    if $return_data["peer_list"].count >= $peers_required
-	return true
-    else
-	$peers_left = $peers_required - $return_data["peer_list"].count
-	return false
-    end
+	if $return_data["peer_list"].count >= $peers_required
+		return true
+	else
+		$peers_left = $peers_required - $return_data["peer_list"].count
+		return false
+	end
 end
 
 def remove_bad_peers(peer_list)
     if ! peer_list.any?
-	return nil
+		return nil
     end
 end
 	
 def get_random_peers(peer_count)
 	begin
-	req="select conn_id from #{$p2p_db_state_table} where channel_id = \"#{$current_peer["channel_id"]}\" and conn_id <> \"#{$current_peer["conn_id"]}\" limit #{peer_count};"
-	res=$p2p_db_client.query(req)
-    rescue => e
-        $err_logger.error "Error while geting peers for channel #{$current_peer["channel_id"]}"
-        $err_logger.error e.to_s
-        return nil
-    end
+		req="select conn_id from #{$p2p_db_state_table} where channel_id = \"#{$current_peer["channel_id"]}\" and conn_id <> \"#{$current_peer["conn_id"]}\" limit #{peer_count};"
+		res=@p2p_db_client.query(req)
+	rescue => e
+		$err_logger.error "Error while geting peers for channel #{$current_peer["channel_id"]}"
+		$err_logger.error e.to_s
+	return nil
+	end
 	return res
 end
 
 def get_network_peers(peer_count)
-    begin
-	req="select conn_id from #{$p2p_db_state_table} where asn <> 0 and network=inet_aton(\"#{$current_peer["network"]}\") and netmask=inet_aton(\"#{$current_peer["netmask"]}\") and channel_id = \"#{$current_peer["channel_id"]}\" and conn_id <> \"#{$current_peer["conn_id"]}\" limit #{peer_count};"
-	$err_logger.debug req
-	res=$p2p_db_client.query(req)
-    rescue  => e
-        $err_logger.error "Error while geting network peers"
-        $err_logger.error e.to_s
-        return nil
-    end
+	begin
+		req="select conn_id from #{$p2p_db_state_table} where asn <> 0 and network=inet_aton(\"#{$current_peer["network"]}\") and netmask=inet_aton(\"#{$current_peer["netmask"]}\") and channel_id = \"#{$current_peer["channel_id"]}\" and conn_id <> \"#{$current_peer["conn_id"]}\" limit #{peer_count};"
+		$err_logger.debug req
+		res=@p2p_db_client.query(req)
+	rescue  => e
+		$err_logger.error "Error while geting network peers"
+		$err_logger.error e.to_s
+		return nil
+	end
 	return res
 end
 
 def get_asn_peers(peer_count)
-    begin
-	req="select conn_id from #{$p2p_db_state_table} where asn=#{$current_peer["asn"]} and asn <> 0 and network<>inet_aton(\"#{$current_peer["network"]}\") and netmask<>inet_aton(\"#{$current_peer["netmask"]}\") and channel_id = \"#{$current_peer["channel_id"]}\" and conn_id <> \"#{$current_peer["conn_id"]}\" limit #{peer_count};"
-	$err_logger.debug req
-	res=$p2p_db_client.query(req)
-    rescue  => e
-        $err_logger.error "Error while geting ASN peers"
-        $err_logger.error e.to_s
-        return nil
-    end
-    return res
+	begin
+		req="select conn_id from #{$p2p_db_state_table} where asn=#{$current_peer["asn"]} and asn <> 0 and network<>inet_aton(\"#{$current_peer["network"]}\") and netmask<>inet_aton(\"#{$current_peer["netmask"]}\") and channel_id = \"#{$current_peer["channel_id"]}\" and conn_id <> \"#{$current_peer["conn_id"]}\" limit #{peer_count};"
+		$err_logger.debug req
+		res=@p2p_db_client.query(req)
+	rescue => e
+		$err_logger.error "Error while geting ASN peers"
+		$err_logger.error e.to_s
+		return nil
+	end
+	return res
 end
 
 def get_city_peers(peer_count)
-    if $current_peer["city"] and ! $current_peer["city"].nil?
-	begin
-	    req="select conn_id from #{$p2p_db_state_table} where city=\"#{$current_peer["city"]}\" and asn<>#{$current_peer["asn"]} and network<>inet_aton(\"#{$current_peer["network"]}\") and netmask<>inet_aton(\"#{$current_peer["netmask"]}\") and channel_id = \"#{$current_peer["channel_id"]}\" and conn_id <> \"#{$current_peer["conn_id"]}\" limit #{peer_count};"
-	    $err_logger.debug req
-	    res=$p2p_db_client.query(req)
-	rescue  => e
-    	    $err_logger.error "Error while geting city peers"
-	    $err_logger.error e.to_s
-    	    return nil
-        end
-	return res
-    else
-        $err_logger.warn "Peer #{$current_peer["conn_id"]} doesnt have correct city info"
-        return nil
+	if $current_peer["city"] and ! $current_peer["city"].nil?
+		begin
+			req="select conn_id from #{$p2p_db_state_table} where city=\"#{$current_peer["city"]}\" and asn<>#{$current_peer["asn"]} and network<>inet_aton(\"#{$current_peer["network"]}\") and netmask<>inet_aton(\"#{$current_peer["netmask"]}\") and channel_id = \"#{$current_peer["channel_id"]}\" and conn_id <> \"#{$current_peer["conn_id"]}\" limit #{peer_count};"
+			$err_logger.debug req
+			res=@p2p_db_client.query(req)
+		rescue => e
+			$err_logger.error "Error while geting city peers"
+			$err_logger.error e.to_s
+			return nil
+		end
+		return res
+	else
+		$err_logger.warn "Peer #{$current_peer["conn_id"]} doesnt have correct city info"
+		return nil
     end
 end
 
 def get_overloaded_peers(channel_id)
-    result=[]
-    begin
-	req="select conn_id from #{$p2p_db_state_table} where channel_id=\"#{channel_id}\" and (select count(distinct peer_conn_id) from #{$p2p_db_peer_load_table} where seed_conn_id=conn_id) > #{$seed_max_peers_5};"
-	$err_logger.debug req
-	res=$p2p_db_client.query(req)
-    rescue  => e
-        $err_logger.error "Error while getting oveloaded peers"
-        $err_logger.error e.to_s
-        return nil
-    end
-    res.each do |peer|
-	result.push(peer["conn_id"])
-    end
-    return result
+	result=[]
+	begin
+		req="select conn_id from #{$p2p_db_state_table} where channel_id=\"#{channel_id}\" and (select count(distinct peer_conn_id) from #{$p2p_db_peer_load_table} where seed_conn_id=conn_id) > #{$seed_max_peers_5};"
+		$err_logger.debug req
+		res=@p2p_db_client.query(req)
+	rescue  => e
+		$err_logger.error "Error while getting oveloaded peers"
+		$err_logger.error e.to_s
+		return nil
+	end
+	res.each do |peer|
+		result.push(peer["conn_id"])
+	end
+	return result
 end
 
 def get_droppy_peers(channel_id)
-    result=[]
-    begin
-	req="select conn_id from #{$p2p_db_state_table} where channel_id=\"#{channel_id}\" and (select count(distinct peer_conn_id) from #{$p2p_db_bad_peer_table} where seed_conn_id=conn_id) > #{$seed_max_drops_30};"
-	$err_logger.debug req
-	res=$p2p_db_client.query(req)
-    rescue  => e
-        $err_logger.error "Error while getting oveloaded peers"
-        $err_logger.error e.to_s
-        return nil
-    end
-    res.each do |peer|
-	result.push(peer["conn_id"])
-    end
-    return result
+	result=[]
+	begin
+		req="select conn_id from #{$p2p_db_state_table} where channel_id=\"#{channel_id}\" and (select count(distinct peer_conn_id) from #{$p2p_db_bad_peer_table} where seed_conn_id=conn_id) > #{$seed_max_drops_30};"
+		$err_logger.debug req
+		res=@p2p_db_client.query(req)
+	rescue => e
+		$err_logger.error "Error while getting oveloaded peers"
+		$err_logger.error e.to_s
+		return nil
+	end
+	res.each do |peer|
+		result.push(peer["conn_id"])
+	end
+	return result
 end
 
 def get_region_peers(peer_count)
-    if $current_peer["region"] and ! $current_peer["region"].nil?
-	    city_logic=($current_peer["city"] and ! $current_peer["city"].nil?) ? "city <> \"#{$current_peer["city"]}\" and" : ""
+	if $current_peer["region"] and ! $current_peer["region"].nil?
+		city_logic=($current_peer["city"] and ! $current_peer["city"].nil?) ? "city <> \"#{$current_peer["city"]}\" and" : ""
 		begin
 			req="select conn_id from #{$p2p_db_state_table} where #{city_logic} region=\"#{$current_peer["region"]}\" and asn<>#{$current_peer["asn"]} and network<>inet_aton(\"#{$current_peer["network"]}\") and netmask<>inet_aton(\"#{$current_peer["netmask"]}\") and channel_id = \"#{$current_peer["channel_id"]}\" and conn_id <> \"#{$current_peer["conn_id"]}\" limit #{peer_count};"
 			$err_logger.debug req
-			res=$p2p_db_client.query(req)
-		rescue  => e
-    	    $err_logger.error "Error while geting region peers"
+			res=@p2p_db_client.query(req)
+		rescue => e
+			$err_logger.error "Error while geting region peers"
 			$err_logger.error e.to_s
-    	    return nil
-        end
+			return nil
+		end
 		return res
-    else
-        $err_logger.warn "Peer #{$current_peer["conn_id"]} doesnt have correct region info"
-        return nil
-    end
+	else
+		$err_logger.warn "Peer #{$current_peer["conn_id"]} doesnt have correct region info"
+		return nil
+	end
 end
 
 def get_country_peers(peer_count)
-    if $current_peer["country"] and ! $current_peer["country"].nil?
-	    city_logic=($current_peer["city"] and ! $current_peer["city"].nil?) ? "city <> \"#{$current_peer["city"]}\" and" : ""
-	    region_logic=($current_peer["region"] and ! $current_peer["region"].nil?) ? "region <> \"#{$current_peer["region"]}\" and" : ""
+	if $current_peer["country"] and ! $current_peer["country"].nil?
+		city_logic=($current_peer["city"] and ! $current_peer["city"].nil?) ? "city <> \"#{$current_peer["city"]}\" and" : ""
+		region_logic=($current_peer["region"] and ! $current_peer["region"].nil?) ? "region <> \"#{$current_peer["region"]}\" and" : ""
 		begin
 			req="select conn_id from #{$p2p_db_state_table} where #{city_logic} #{region_logic} country=\"#{$current_peer["country"]}\" and asn<>#{$current_peer["asn"]} and network<>inet_aton(\"#{$current_peer["network"]}\") and netmask<>inet_aton(\"#{$current_peer["netmask"]}\") and channel_id = \"#{$current_peer["channel_id"]}\" and conn_id <> \"#{$current_peer["conn_id"]}\" limit #{peer_count};"
 			$err_logger.debug req
-			res=$p2p_db_client.query(req)
+			res=@p2p_db_client.query(req)
 		rescue  => e
     	    $err_logger.error "Error while geting country peers"
 			$err_logger.error e.to_s
-    	    return nil
-        end
+			return nil
+		end
 		return res
-    else
-        $err_logger.warn "Peer #{$current_peer["conn_id"]} doesnt have correct region info"
-        return nil
-    end
+	else
+		$err_logger.warn "Peer #{$current_peer["conn_id"]} doesnt have correct region info"
+		return nil
+	end
 end
 
 def get_channel_id(conn_id)
@@ -346,7 +346,7 @@ def get_channel_id(conn_id)
 		$err_logger.debug "Getting channel id for peer: #{conn_id}"
 		req="select channel_id from #{$p2p_db_state_table} where conn_id=\"#{conn_id}\" order by last_update desc;"
 		$err_logger.debug req
-		res=$p2p_db_client.query(req)
+		res=@p2p_db_client.query(req)
 	rescue  => e
 		$err_logger.error "Error while geting channel id"
 		$err_logger.error e.to_s
