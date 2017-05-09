@@ -18,6 +18,7 @@ class Common_worker
 			@bunny_workers={}
 			i_bunny(bunny_queues)
 		end
+		if geocity_client then i_geocity_client end
 	end
 
 	def i_name(worker_id)
