@@ -1,6 +1,6 @@
 #!/bin/bash
 
-rvm default ruby 2.4
+#rvm reload;rvm default ruby 2.4
 
 COMMON_ONLINE_PEERS_WORKERS=2
 PEER_LIST_MASTER_WORKERS=1
