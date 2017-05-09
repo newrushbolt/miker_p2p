@@ -98,17 +98,19 @@ class Common_worker
 			@slow_whois=Slow_whois.new
 		rescue => e_main
 			$err_logger.error e_main.to_s
-			raise "Error while loading slow whois client"
+			$err_logger.error "Error while loading slow whois client"
 		end
 	end
 
 	def i_geocity_client
 		require 'geoip'
 		begin
-			@geocity_client=GeoIP.new("#{@my_dir}/var/geoip/GeoLiteCity.dat")
+			db_path="#{@my_dir}/var/geoip/GeoLiteCity.dat"
+			$err_logger.debug "Trying to load geoip DB from: #{db_path}"
+			@geocity_client=GeoIP.new(db_path)
 		rescue => e_main
 			$err_logger.error e_main.to_s
-			raise "Error while starting GeoIP client"
+			$err_logger.error "Error while starting GeoIP client"
 		end
 	end
 
