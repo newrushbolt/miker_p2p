@@ -1,6 +1,6 @@
 $log_level=Logger::INFO
-#$default_user='mihailov.s'
-$default_user='svmikhailov'
+$default_user='mihailov.s'
+#$default_user='svmikhailov'
 
 $p2p_db='p2p'
 $p2p_db_host='127.0.0.1'
@@ -25,6 +25,8 @@ $seed_max_peers_5=10
 $peer_list_outdate_period=90
 
 $private_nets=["10.0.0.0/8","172.16.0.0/12","192.168.0.0/16","127.0.0.0/8", "169.254.0.0/16","224.0.0.0/4","240.0.0.0/4"]
+
+$worker_restart_interval=5
 
 #May need it later
 #$ripe_prefix_url='https://stat.ripe.net/data/announced-prefixes/data.json?'
