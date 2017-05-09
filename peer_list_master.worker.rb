@@ -67,7 +67,13 @@ class Peer_list_master_worker < Common_worker
 
 end
 
-current_worker=Peer_list_master_worker.new(worker_id: ARGV[0],worker_log_level: ARGV[1],bunny_queues: ["peer_lists_tasks"])
-current_worker.run
-peer_lists_tasks
-
+while true
+	begin
+		current_worker=Peer_list_master_worker.new(worker_id: ARGV[0],worker_log_level: ARGV[1],bunny_queues: ["peer_lists_tasks"])
+		current_worker.run
+	rescue => e
+		$err_logger.error "Error in main module,restarting the class"
+		$err_logger.error e.to_s
+	end
+	sleep($worker_restart_interval)
+end

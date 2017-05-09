@@ -92,5 +92,13 @@ class Peer_log_worker < Common_worker
 
 end
 
-current_worker=Peer_log_worker.new(worker_id: ARGV[0],worker_log_level: ARGV[1],bunny_queues: ["common_online_peers","peer_log"])
-current_worker.run
+while true
+	begin
+		current_worker=Peer_log_worker.new(worker_id: ARGV[0],worker_log_level: ARGV[1],bunny_queues: ["common_online_peers","peer_log"])
+		current_worker.run
+	rescue => e
+		$err_logger.error "Error in main module,restarting the class"
+		$err_logger.error e.to_s
+	end
+	sleep($worker_restart_interval)
+end

@@ -110,7 +110,15 @@ class Slow_online_peer_worker < Common_worker
 	
 end
 
-current_worker=Slow_online_peer_worker.new(\
-worker_id: ARGV[0], worker_log_level: ARGV[1], slow_whois_client: true,\
-bunny_queues: ["slow_online_peers"], geocity_client: true)
-current_worker.run
+while true
+	begin
+		current_worker=Slow_online_peer_worker.new(\
+		worker_id: ARGV[0], worker_log_level: ARGV[1], slow_whois_client: true,\
+		bunny_queues: ["slow_online_peers"], geocity_client: true)
+		current_worker.run
+	rescue => e
+		$err_logger.error "Error in main module,restarting the class"
+		$err_logger.error e.to_s
+	end
+	sleep($worker_restart_interval)
+end

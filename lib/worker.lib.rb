@@ -105,7 +105,7 @@ class Common_worker
 	def i_geocity_client
 		require 'geoip'
 		begin
-			@geocity_client=GeoIP.new('var/geoip/GeoLiteCity.dat')
+			@geocity_client=GeoIP.new("#{@my_dir}/var/geoip/GeoLiteCity.dat")
 		rescue => e_main
 			$err_logger.error e_main.to_s
 			raise "Error while starting GeoIP client"
