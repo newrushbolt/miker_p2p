@@ -3,6 +3,7 @@
 var/log/*
 var/run/*
 data/*
+etc/conf.rb
 
 # Windows image file caches
 Thumbs.db
