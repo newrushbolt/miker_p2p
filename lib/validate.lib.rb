@@ -51,7 +51,7 @@ public
 	
 	def v_conn_id(conn_id)
 		$err_logger.debug "Running #{__method__}"
-		if is_pure_utf(conn_id) and conn_id.match(/[a-z0-9]*/).to_s == conn_id
+		if is_pure_utf(conn_id) and conn_id.match(/[a-z0-9]{1,}/).to_s == conn_id
 			$err_logger.debug "Data #{conn_id} is VALID"
 			return true
 		end
@@ -61,7 +61,7 @@ public
 
 	def v_channel_id(channel_id)
 		$err_logger.debug "Running #{__method__}"
-		if is_pure_utf(channel_id) and channel_id.match(/.*/).to_s == channel_id
+		if is_pure_utf(channel_id) and channel_id.match(/.{1,}/).to_s == channel_id
 			$err_logger.debug "Data #{channel_id} is VALID"
 			return true
 		end
