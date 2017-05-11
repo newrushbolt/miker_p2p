@@ -17,7 +17,7 @@ CREATE TABLE `peer_state` (
   `city` varchar(45) DEFAULT NULL,
   UNIQUE KEY `conn_id` (`conn_id`) USING BTREE,
   PRIMARY KEY `conn_channel` (`conn_id`,`channel_id`)
-) ENGINE=MEMORY DEFAULT CHARSET=utf8;
+) ENGINE=INNODB DEFAULT CHARSET=utf8;
 
 DROP TABLE IF EXISTS ip_bad_peers;
 CREATE TABLE `ip_bad_peers` (
@@ -27,7 +27,7 @@ CREATE TABLE `ip_bad_peers` (
   `last_update` int(10) unsigned NOT NULL,
   `ip` int(10) unsigned NOT NULL,
   UNIQUE KEY `conn_id` (`conn_id`) USING BTREE
-) ENGINE=MEMORY DEFAULT CHARSET=utf8;
+) ENGINE=INNODB DEFAULT CHARSET=utf8;
 
 DROP TABLE IF EXISTS peer_load_5;
 CREATE TABLE `peer_load_5` (
@@ -37,7 +37,7 @@ CREATE TABLE `peer_load_5` (
   `bytes` int(10) unsigned NOT NULL,
   `ltime` int(10) unsigned NOT NULL,
   UNIQUE KEY `uniq_ts_ids` (`seed_conn_id`,`ts`,`peer_conn_id`) USING BTREE
-) ENGINE=MEMORY DEFAULT CHARSET=utf8;
+) ENGINE=INNODB DEFAULT CHARSET=utf8;
 
 DROP TABLE IF EXISTS peer_bad_30;
 CREATE TABLE `peer_bad_30` (
@@ -45,7 +45,7 @@ CREATE TABLE `peer_bad_30` (
   `ts` int(10) unsigned NOT NULL,
   `peer_conn_id` varchar(45) NOT NULL,
   UNIQUE KEY `uniq_ts_ids` (`seed_conn_id`,`ts`,`peer_conn_id`) USING BTREE
-) ENGINE=MEMORY DEFAULT CHARSET=utf8;
+) ENGINE=INNODB DEFAULT CHARSET=utf8;
 
 DROP TABLE IF EXISTS net_bad_30;
 CREATE TABLE `net_bad_30` (
@@ -56,7 +56,7 @@ CREATE TABLE `net_bad_30` (
   `peer_netmask` int(10) unsigned NOT NULL,
   UNIQUE KEY `uniq_ts_ids` (`seed_network`,`seed_netmask`,`ts`,`peer_network`,`peer_netmask`) USING BTREE,
   PRIMARY KEY `seed_net` (`seed_network`,`seed_netmask`) USING BTREE
-) ENGINE=MEMORY DEFAULT CHARSET=utf8;
+) ENGINE=INNODB DEFAULT CHARSET=utf8;
 
 DROP TABLE IF EXISTS worker_counters;
 CREATE TABLE `worker_counters` (
@@ -64,7 +64,7 @@ CREATE TABLE `worker_counters` (
   `type` varchar(45) NOT NULL,
   `count` int(10) unsigned,
   UNIQUE KEY `uniq_worker` (`worker`,`type`) USING BTREE
-) ENGINE=MEMORY DEFAULT CHARSET=utf8;
+) ENGINE=INNODB DEFAULT CHARSET=utf8;
 
 DROP TABLE IF EXISTS peer_lists;
 CREATE TABLE `peer_lists` (
