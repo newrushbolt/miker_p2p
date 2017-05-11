@@ -70,6 +70,12 @@ class Common_worker
 	def i_p2p_db
 		require 'mysql2'
 		begin
+			@p2p_db_client.close
+			@p2p_db_client=nil
+		rescue => e_sql
+			$err_logger.debug e_sql.to_s
+			$err_logger.info "No running SQL connector,closing"
+		begin
 			@p2p_db_client=Mysql2::Client.new(:host => $p2p_db_host, :database => $p2p_db, :username => $p2p_db_user, :password => $p2p_db_pass)
 		rescue => e_main
 			$err_logger.error e_main.to_s

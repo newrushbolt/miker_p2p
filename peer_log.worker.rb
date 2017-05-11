@@ -72,13 +72,13 @@ class Peer_log_worker < Common_worker
 							req="insert ignore into #{$p2p_db_bad_peer_table} values (\"#{bad_peer["Conn_id"]}\",#{peer["timestamp"].to_i},\"#{peer["conn_id"]}\");"
 							$err_logger.debug req
 							res=@p2p_db_client.query(req)
+							aff=@p2p_db_client.affected_rows
 						rescue => e
 							$err_logger.error "Error in SQL insert for bad_peer: #{bad_peer}"
 							$err_logger.error peer
 							$err_logger.error req
 							$err_logger.error e.to_s
 						end
-						aff=@p2p_db_client.affected_rows
 						$err_logger.debug "#{aff} rows affected"
 					end
 					cnt_up("success")
