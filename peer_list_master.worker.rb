@@ -1,4 +1,4 @@
-require "#{File.expand_path(File.dirname(__FILE__))}/lib/worker.lib.rb"
+﻿require "#{File.expand_path(File.dirname(__FILE__))}/lib/worker.lib.rb"
 
 class Peer_list_master_worker < Common_worker
 

@@ -1,4 +1,4 @@
-class Common_worker
+﻿class Common_worker
 
 	def initialize(worker_id: 1,worker_log_level: nil,p2p_db: true, slow_whois_client: false, fast_whois_client: false, bunny_queues: [],geocity_client: false)
 		require 'rubygems'

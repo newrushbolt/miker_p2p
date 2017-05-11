@@ -1,4 +1,4 @@
-require "#{File.expand_path(File.dirname(__FILE__))}/lib/make_peer_list.lib.rb"
+﻿require "#{File.expand_path(File.dirname(__FILE__))}/lib/make_peer_list.lib.rb"
 require "#{File.expand_path(File.dirname(__FILE__))}/lib/worker.lib.rb"
 
 class Peer_list_slave_worker < Common_worker

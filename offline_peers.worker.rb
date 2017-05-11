@@ -1,4 +1,4 @@
-require "#{File.expand_path(File.dirname(__FILE__))}/lib/worker.lib.rb"
+﻿require "#{File.expand_path(File.dirname(__FILE__))}/lib/worker.lib.rb"
 
 class Offline_peers_worker < Common_worker
 

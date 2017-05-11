@@ -1,4 +1,4 @@
-$log_level=Logger::INFO
+﻿$log_level=Logger::INFO
 $default_user='mihailov.s'
 #$default_user='svmikhailov'
 

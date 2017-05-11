@@ -1,4 +1,4 @@
-#!/bin/bash
+﻿#!/bin/bash
 
 #rvm reload;rvm default ruby 2.4
 

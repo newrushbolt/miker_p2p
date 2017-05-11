@@ -1,4 +1,4 @@
-class Webrtc_validator
+﻿class Webrtc_validator
 private
 	def is_pure_utf(input_string)
 		pure_string=input_string.to_s.encode('utf-8', :invalid => :replace, :undef => :replace)

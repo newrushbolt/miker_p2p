@@ -1,4 +1,4 @@
-def make_peer_list(conn_id)
+﻿def make_peer_list(conn_id)
 	$return_data={}
 	# if args.count < 1
 		# $err_logger.error "Not enough arguments"
