@@ -123,6 +123,12 @@ end
 
 while true
 	begin
+		current_worker=nil
+	rescue => e
+		$err_logger.info "Error in class cleanup"
+		$err_logger.info e.to_s
+	end
+	begin
 		current_worker=Common_online_peer_worker.new(\
 		worker_id: ARGV[0],worker_log_level: ARGV[1], fast_whois_client: true,\
 		bunny_queues: ["common_online_peers","slow_online_peers"],geocity_client: true)

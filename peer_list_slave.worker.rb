@@ -39,6 +39,12 @@ end
 
 while true
 	begin
+		current_worker=nil
+	rescue => e
+		$err_logger.info "Error in class cleanup"
+		$err_logger.info e.to_s
+	end
+	begin
 		current_worker=Peer_list_slave_worker.new(worker_id: ARGV[0],worker_log_level: ARGV[1],bunny_queues: ["peer_lists_tasks"])
 		current_worker.run
 	rescue => e

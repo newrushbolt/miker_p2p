@@ -73,11 +73,11 @@
 			@p2p_db_client.close
 			@p2p_db_client=nil
 		rescue => e_sql
-			$err_logger.debug e_sql.to_s
-			$err_logger.info "No running SQL connector,closing"
+			$err_logger.info e_sql.to_s
+			$err_logger.info "No running SQL connector"
 		end
 		begin
-			@p2p_db_client=Mysql2::Client.new(:host => $p2p_db_host, :database => $p2p_db, :username => $p2p_db_user, :password => $p2p_db_pass)
+			@p2p_db_client=Mysql2::Client.new(:host => $p2p_db_host, :database => $p2p_db, :username => $p2p_db_user, :password => $p2p_db_pass,:reconnect => true,:connect_timeout => 2)
 		rescue => e_main
 			$err_logger.error e_main.to_s
 			raise "Error while connecting to MySQL"
