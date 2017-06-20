@@ -147,7 +147,8 @@
 	def i_nats(queues)
 		require 'nats/io/client'
 		begin
-			@nats_client = NATS::IO::Client.new(:servers => $nats_servers)
+			@nats_client = NATS::IO::Client.new
+			@nats_client.connect(:servers => $nats_servers)
 			$err_logger.debug "nats workers: #{@nats_client.inspect}"
 		rescue => e_main
 			$err_logger.error e_main.to_s
