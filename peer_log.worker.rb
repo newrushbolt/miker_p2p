@@ -24,8 +24,8 @@ class Peer_log_worker < Common_worker
 	public
 	def run
 		while true
-			@bunny_workers["peer_log"].subscribe(:block => true,:manual_ack => true) do |delivery_info, properties, body|
-				peer=JSON.parse(body)
+			@nats_client.subscribe("peer_log") do |msg, reply, subject|
+				peer=JSON.parse(msg)
 				$err_logger.debug "Got log:\n#{peer}"
 				if @validator.v_peer_log_entry(peer)
 					$err_logger.debug "Finding seed in peer_state db"
@@ -47,7 +47,7 @@ class Peer_log_worker < Common_worker
 						online_peer["channel_id"]=peer["channel_id"]
 						online_peer["ip"]=peer["ip"]
 						online_peer["timestamp"]=peer["timestamp"]
-						@bunny_workers["common_online_peers"].publish(JSON.generate(online_peer), :routing_key => @bunny_workers["common_online_peers"].name, :persistent => false)
+						@nats_client.publish("common_online_peers",JSON.generate(online_peer))
 					end
 					$err_logger.debug "Updating good_peer in SQL"
 					good_peer=peer["good_peer"]
@@ -100,7 +100,7 @@ while true
 		$err_logger.info e.to_s
 	end
 	begin
-		current_worker=Peer_log_worker.new(worker_id: ARGV[0],worker_log_level: ARGV[1],bunny_queues: ["common_online_peers","peer_log"])
+		current_worker=Peer_log_worker.new(worker_id: ARGV[0],worker_log_level: ARGV[1],nats_client: true)
 		current_worker.run
 	rescue => e
 		$err_logger.error "Error in main module,restarting the class"

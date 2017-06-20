@@ -1,6 +1,6 @@
 ﻿class Common_worker
 
-	def initialize(worker_id: 1,worker_log_level: nil,p2p_db: true, slow_whois_client: false, fast_whois_client: false, bunny_queues: [],geocity_client: false)
+	def initialize(worker_id: 1,worker_log_level: nil,p2p_db: true, slow_whois_client: false, fast_whois_client: false, bunny_queues: [],nats_client: false,geocity_client: false)
 		require 'rubygems'
 		require 'etc'
 		require 'ipaddr'
@@ -18,6 +18,11 @@
 			@bunny_workers={}
 			i_bunny(bunny_queues)
 		end
+		if nats_client
+			@nats_client=nil
+			i_nats
+		end
+
 		if geocity_client then i_geocity_client end
 	end
 
@@ -123,19 +128,30 @@
 	end
 
 	def i_bunny(queues)
-		require 'bunny'
-		begin
-			@rabbit_client = Bunny.new(:hostname => $rabbit_host, :port => $rabbit_port)
-			@rabbit_client.start
-			@rabbit_channel = @rabbit_client.create_channel()
-			queues.each do |bunny_queue|
-				@bunny_workers[bunny_queue] = @rabbit_channel.queue(bunny_queue, :durable => true, :auto_delete => false)
-				$err_logger.debug "Adding #{bunny_queue} queue to rabbit workers"
+			require 'bunny'
+			begin
+				@rabbit_client = Bunny.new(:hostname => $rabbit_host, :port => $rabbit_port)
+				@rabbit_client.start
+				@rabbit_channel = @rabbit_client.create_channel()
+				queues.each do |bunny_queue|
+					@bunny_workers[bunny_queue] = @rabbit_channel.queue(bunny_queue, :durable => true, :auto_delete => false)
+					$err_logger.debug "Adding #{bunny_queue} queue to rabbit workers"
+				end
+				$err_logger.debug "Rabbit workers: #{@bunny_workers.inspect}"
+			rescue => e_main
+				$err_logger.error e_main.to_s
+				raise "Error while setting RabbitMQ workers"
 			end
-			$err_logger.debug "Rabbit workers: #{@bunny_workers.inspect}"
+		end
+
+	def i_nats(queues)
+		require 'nats/io/client'
+		begin
+			@nats_client = NATS::IO::Client.new(:servers => $nats_servers)
+			$err_logger.debug "nats workers: #{@nats_client.inspect}"
 		rescue => e_main
 			$err_logger.error e_main.to_s
-			raise "Error while setting RabbitMQ workers"
+			raise "Error while setting nats workers"
 		end
 	end
 
