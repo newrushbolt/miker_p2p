@@ -144,7 +144,7 @@
 			end
 		end
 
-	def i_nats(queues)
+	def i_nats
 		require 'nats/io/client'
 		begin
 			@nats_client = NATS::IO::Client.new
