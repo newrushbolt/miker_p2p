@@ -145,15 +145,15 @@
 		end
 
 	def i_nats
-		require 'nats/io/client'
-		begin
-			@nats_client = NATS::IO::Client.new
-			@nats_client.connect(:servers => $nats_servers, :options => {:user => 'guest',:pass => 'guest'})
+		require 'nats/client'
+#		begin
+			@nats_client = NATS
+			@nats_client.connect(:servers => $nats_servers)
 			$err_logger.debug "nats workers: #{@nats_client.inspect}"
-		rescue => e_main
-			$err_logger.error e_main.to_s
-			raise "Error while setting nats workers"
-		end
+#		rescue => e_main
+#			$err_logger.error e_main.to_s
+#			raise "Error while setting nats workers"
+#		end
 	end
 
 	def cnt_up(type)

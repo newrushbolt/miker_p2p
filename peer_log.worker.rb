@@ -23,8 +23,9 @@ class Peer_log_worker < Common_worker
 
 	public
 	def run
-		while true
-			@nats_client.subscribe("peer_log") do |msg, reply, subject|
+#		while true
+		NATS.start(:servers => $nats_servers) do
+			NATS.subscribe("peer_log") do |msg|
 				peer=JSON.parse(msg)
 				$err_logger.debug "Got log:\n#{peer}"
 				if @validator.v_peer_log_entry(peer)
@@ -47,7 +48,7 @@ class Peer_log_worker < Common_worker
 						online_peer["channel_id"]=peer["channel_id"]
 						online_peer["ip"]=peer["ip"]
 						online_peer["timestamp"]=peer["timestamp"]
-						@nats_client.publish("common_online_peers",JSON.generate(online_peer))
+#						@nats_client.publish("common_online_peers",JSON.generate(online_peer))
 					end
 					$err_logger.debug "Updating good_peer in SQL"
 					good_peer=peer["good_peer"]
@@ -85,26 +86,27 @@ class Peer_log_worker < Common_worker
 				else
 					cnt_up("failed")
 				end
-				@rabbit_channel.acknowledge(delivery_info.delivery_tag, false)
+#				@rabbit_channel.acknowledge(delivery_info.delivery_tag, false)
 			end
 		end
 	end
 
 end
 
-while true
+require 'nats/client'
+#while true
 	begin
 		current_worker=nil
 	rescue => e
 		$err_logger.info "Error in class cleanup"
 		$err_logger.info e.to_s
 	end
-	begin
-		current_worker=Peer_log_worker.new(worker_id: ARGV[0],worker_log_level: ARGV[1],nats_client: true)
+#	begin
+		current_worker=Peer_log_worker.new(worker_id: ARGV[0],worker_log_level: ARGV[1])
 		current_worker.run
-	rescue => e
+#	rescue => e
 		$err_logger.error "Error in main module,restarting the class"
 		$err_logger.error e.to_s
-	end
+#	end
 	sleep($worker_restart_interval)
-end
+#end
