@@ -45,7 +45,7 @@ class Peer_list_master_worker < Common_worker
 		tasks.each do |task|
 			begin
 				$err_logger.debug "Adding task: #{task}"
-				@bunny_workers["peer_lists_tasks"].publish(task.to_s, :routing_key => @bunny_workers["peer_lists_tasks"].name, :persistent => false)
+				NATS.publish("peer_lists_tasks",task.to_s)
 				cnt_up("success")
 			rescue => e_main
 				$err_logger.error "Error while adding task to RabbitMQ: #{task}"
@@ -57,16 +57,19 @@ class Peer_list_master_worker < Common_worker
 
 	public
 	def run
-		while true
-			absent_peers=get_absent_peers
-			outdated_peers=get_outdated_peers($peer_list_outdate_period)
-			add_lists_tasks(absent_peers + outdated_peers)
-			sleep(30)
+		NATS.start(:servers => $nats_servers) do
+			while true
+				absent_peers=get_absent_peers
+				outdated_peers=get_outdated_peers($peer_list_outdate_period)
+				add_lists_tasks(absent_peers + outdated_peers)
+				sleep(30)
+			end
 		end
 	end
 
 end
 
+require 'nats/client'
 while true
 	begin
 		current_worker=nil
@@ -75,7 +78,7 @@ while true
 		$err_logger.info e.to_s
 	end
 	begin
-		current_worker=Peer_list_master_worker.new(worker_id: ARGV[0],worker_log_level: ARGV[1],bunny_queues: ["peer_lists_tasks"])
+		current_worker=Peer_list_master_worker.new(worker_id: ARGV[0],worker_log_level: ARGV[1])
 		current_worker.run
 	rescue => e
 		$err_logger.error "Error in main module,restarting the class"
