@@ -48,7 +48,7 @@ class Peer_log_worker < Common_worker
 						online_peer["channel_id"]=peer["channel_id"]
 						online_peer["ip"]=peer["ip"]
 						online_peer["timestamp"]=peer["timestamp"]
-#						@nats_client.publish("common_online_peers",JSON.generate(online_peer))
+						NATS.publish("common_online_peers",JSON.generate(online_peer))
 					end
 					$err_logger.debug "Updating good_peer in SQL"
 					good_peer=peer["good_peer"]

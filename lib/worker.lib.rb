@@ -1,6 +1,6 @@
 ﻿class Common_worker
 
-	def initialize(worker_id: 1,worker_log_level: nil,p2p_db: true, slow_whois_client: false, fast_whois_client: false, bunny_queues: [],nats_client: false,geocity_client: false)
+	def initialize(worker_id: 1,worker_log_level: nil,p2p_db: true, slow_whois_client: false, fast_whois_client: false, bunny_queues: [],geocity_client: false)
 		require 'rubygems'
 		require 'etc'
 		require 'ipaddr'
@@ -18,11 +18,6 @@
 			@bunny_workers={}
 			i_bunny(bunny_queues)
 		end
-		if nats_client
-			@nats_client=nil
-			i_nats
-		end
-
 		if geocity_client then i_geocity_client end
 	end
 
@@ -143,18 +138,6 @@
 				raise "Error while setting RabbitMQ workers"
 			end
 		end
-
-	def i_nats
-		require 'nats/client'
-#		begin
-			@nats_client = NATS
-			@nats_client.connect(:servers => $nats_servers)
-			$err_logger.debug "nats workers: #{@nats_client.inspect}"
-#		rescue => e_main
-#			$err_logger.error e_main.to_s
-#			raise "Error while setting nats workers"
-#		end
-	end
 
 	def cnt_up(type)
 		begin
