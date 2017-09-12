@@ -11,7 +11,7 @@ CREATE TABLE peers (
   gg_id varchar(45) DEFAULT NULL,
   ip inet NOT NULL,
   CONSTRAINT peers_connid_channel PRIMARY KEY (conn_id,channel_id),
-  CONSTRAINT peers_channelid_slot FOREIGN KEY channel_id REFERENCES channels_slots (channel_id)
+  CONSTRAINT peers_channelid_slot FOREIGN KEY (channel_id) REFERENCES channels_slots (channel_id)
 );
 
 DROP TABLE IF EXISTS networks CASCADE;
