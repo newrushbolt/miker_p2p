@@ -1,81 +1,112 @@
-DROP DATABASE IF EXISTS p2p;
-CREATE DATABASE p2p;
-USE `p2p`;
+DROP TABLE IF EXISTS peers CASCADE;
+CREATE TABLE peers (
+  conn_id varchar(45) UNIQUE NOT NULL,
+  channel_id varchar(45) NOT NULL,
+  gg_id varchar(45) DEFAULT NULL,
+  ip inet NOT NULL,
+  CONSTRAINT connid_channel PRIMARY KEY (conn_id,channel_id)
+);
 
-DROP TABLE IF EXISTS peer_state;
-CREATE TABLE `peer_state` (
-  `conn_id` varchar(45) NOT NULL,
-  `channel_id` varchar(45) NOT NULL,
-  `gg_id` varchar(45) DEFAULT NULL,
-  `last_update` int(10) unsigned NOT NULL,
-  `ip` int(10) unsigned NOT NULL,
-  `network` int(10) unsigned NOT NULL,
-  `netmask` int(10) unsigned NOT NULL,
-  `asn` int(10) unsigned NOT NULL,
-  `country` varchar(45) DEFAULT NULL,
-  `region` varchar(45) DEFAULT NULL,
-  `city` varchar(45) DEFAULT NULL,
-  UNIQUE KEY `conn_id` (`conn_id`) USING BTREE,
-  PRIMARY KEY `conn_channel` (`conn_id`,`channel_id`)
-) ENGINE=INNODB DEFAULT CHARSET=utf8;
+DROP TABLE IF EXISTS peers_updates CASCADE;
+CREATE TABLE peers_updates (
+  conn_id varchar(45) UNIQUE PRIMARY KEY NOT NULL,
+  last_update timestamp NOT NULL,
+  CONSTRAINT peers_conn_id FOREIGN KEY (conn_id) REFERENCES peers (conn_id)
+);
 
-DROP TABLE IF EXISTS ip_bad_peers;
-CREATE TABLE `ip_bad_peers` (
-  `conn_id` varchar(45) NOT NULL,
-  `channel_id` varchar(45) NOT NULL,
-  `gg_id` varchar(45) DEFAULT NULL,
-  `last_update` int(10) unsigned NOT NULL,
-  `ip` int(10) unsigned NOT NULL,
-  UNIQUE KEY `conn_id` (`conn_id`) USING BTREE
-) ENGINE=INNODB DEFAULT CHARSET=utf8;
+DROP TABLE IF EXISTS peers_lists CASCADE;
+CREATE TABLE peers_lists (
+  conn_id varchar(45) NOT NULL,
+  ts timestamp NOT NULL,
+  peers_list text NOT NULL,
+  CONSTRAINT connid_ts PRIMARY KEY (conn_id,ts),
+  CONSTRAINT peers_conn_id FOREIGN KEY (conn_id) REFERENCES peers (conn_id)
+);
 
-DROP TABLE IF EXISTS peer_load_5;
-CREATE TABLE `peer_load_5` (
-  `seed_conn_id` varchar(45) NOT NULL,
-  `ts` int(10) unsigned NOT NULL,
-  `peer_conn_id` varchar(45) NOT NULL,
-  `bytes` int(10) unsigned NOT NULL,
-  `ltime` int(10) unsigned NOT NULL,
-  UNIQUE KEY `uniq_ts_ids` (`seed_conn_id`,`ts`,`peer_conn_id`) USING BTREE
-) ENGINE=INNODB DEFAULT CHARSET=utf8;
+DROP TABLE IF EXISTS channels_slots CASCADE;
+CREATE TABLE channels_slots (
+  channel_id varchar(45) UNIQUE PRIMARY KEY NOT NULL,
+  slot_limit int NOT NULL
+);
 
-DROP TABLE IF EXISTS peer_bad_30;
-CREATE TABLE `peer_bad_30` (
-  `seed_conn_id` varchar(45) NOT NULL,
-  `ts` int(10) unsigned NOT NULL,
-  `peer_conn_id` varchar(45) NOT NULL,
-  UNIQUE KEY `uniq_ts_ids` (`seed_conn_id`,`ts`,`peer_conn_id`) USING BTREE
-) ENGINE=INNODB DEFAULT CHARSET=utf8;
+DROP TABLE IF EXISTS networks CASCADE;
+CREATE TABLE networks (
+  network cidr PRIMARY KEY NOT NULL,
+  asn int NOT NULL,
+  country varchar(45) DEFAULT NULL,
+  region varchar(45) DEFAULT NULL,
+  city varchar(45) DEFAULT NULL,
+  CONSTRAINT network_asn UNIQUE (network,asn)
+);
 
-DROP TABLE IF EXISTS net_bad_30;
-CREATE TABLE `net_bad_30` (
-  `seed_network` int(10) unsigned NOT NULL,
-  `seed_netmask` int(10) unsigned NOT NULL,
-  `ts` int(10) unsigned NOT NULL,
-  `peer_network` int(10) unsigned NOT NULL,
-  `peer_netmask` int(10) unsigned NOT NULL,
-  UNIQUE KEY `uniq_ts_ids` (`seed_network`,`seed_netmask`,`ts`,`peer_network`,`peer_netmask`) USING BTREE,
-  PRIMARY KEY `seed_net` (`seed_network`,`seed_netmask`) USING BTREE
-) ENGINE=INNODB DEFAULT CHARSET=utf8;
+DROP TABLE IF EXISTS peers_good CASCADE;
+CREATE TABLE peers_good (
+  conn_id varchar(45) PRIMARY KEY NOT NULL,
+  peers_conn_id varchar(45) NOT NULL,
+  ts int NOT NULL,
+  bytes int NOT NULL,
+  ltime int DEFAULT NULL,
+  CONSTRAINT seeds_conn_id FOREIGN KEY (conn_id) REFERENCES peers (conn_id),
+  CONSTRAINT peers_conn_id FOREIGN KEY (peer_conn_id) REFERENCES peers (conn_id),
+  CONSTRAINT seed_peer_ts UNIQUE (conn_id,peers_conn_id,ts)
+);
 
-DROP TABLE IF EXISTS worker_counters;
-CREATE TABLE `worker_counters` (
-  `worker` varchar(45) NOT NULL,
-  `type` varchar(45) NOT NULL,
-  `count` int(10) unsigned,
-  UNIQUE KEY `uniq_worker` (`worker`,`type`) USING BTREE
-) ENGINE=INNODB DEFAULT CHARSET=utf8;
+DROP TABLE IF EXISTS ip_good CASCADE;
+CREATE TABLE ip_good (
+  ip inet PRIMARY KEY NOT NULL,
+  peer_ip inet NOT NULL,
+  ts int NOT NULL,
+  bytes int NOT NULL,
+  ltime int DEFAULT NULL,
+  CONSTRAINT seed_peer_ts UNIQUE (ip,peers_ip,ts)
+);
 
-DROP TABLE IF EXISTS peer_lists;
-CREATE TABLE `peer_lists` (
-  `conn_id` varchar(45) UNIQUE NOT NULL,
-  `ts` int(10) unsigned NOT NULL,
-  `peer_list` TEXT NOT NULL,
-  PRIMARY KEY `conn_id_ts` (`conn_id`,`ts`) USING BTREE
-) ENGINE=INNODB DEFAULT CHARSET=utf8;
+DROP TABLE IF EXISTS peers_bad CASCADE;
+CREATE TABLE peers_bad (
+  conn_id varchar(45) PRIMARY KEY NOT NULL,
+  peers_conn_id varchar(45) NOT NULL,
+  ts int NOT NULL,
+  CONSTRAINT seeds_conn_id FOREIGN KEY (conn_id) REFERENCES peers (conn_id),
+  CONSTRAINT peers_conn_id FOREIGN KEY (peer_conn_id) REFERENCES peers (conn_id),
+  CONSTRAINT seed_peer_ts UNIQUE (conn_id,peers_conn_id,ts)
+);
 
-	GRANT USAGE ON *.* TO 'p2p'@'localhost';
-	DROP USER 'p2p'@'localhost';
-	CREATE USER 'p2p'@'localhost' IDENTIFIED BY 'wb5nv6d8';
-	SET SQL_MODE='TRADITIONAL,ALLOW_INVALID_DATES';
-	GRANT ALL ON `p2p`.* TO 'p2p'@'localhost';
+DROP TABLE IF EXISTS ip_bad CASCADE;
+CREATE TABLE ip_bad (
+  ip inet PRIMARY KEY NOT NULL,
+  peer_ip inet NOT NULL,
+  ts int NOT NULL,
+  CONSTRAINT seed_peer_ts UNIQUE (ip,peers_ip,ts)
+);
+
+DROP TABLE IF EXISTS networks_good_stats_30 CASCADE;
+CREATE TABLE networks_good_stats_30 (
+  network cidr PRIMARY KEY NOT NULL,
+  peer_network cidr NOT NULL,
+  CONSTRAINT network FOREIGN KEY (network) REFERENCES networks (network),
+  CONSTRAINT peer_network FOREIGN KEY (peer_network) REFERENCES networks (network)
+);
+
+DROP TABLE IF EXISTS networks_good_stats_720 CASCADE;
+CREATE TABLE networks_good_stats_720 (
+  network cidr PRIMARY KEY NOT NULL,
+  peer_network cidr NOT NULL,
+  CONSTRAINT network FOREIGN KEY (network) REFERENCES networks (network),
+  CONSTRAINT peer_network FOREIGN KEY (peer_network) REFERENCES networks (network)
+);
+
+DROP TABLE IF EXISTS networks_bad_stats_30 CASCADE;
+CREATE TABLE networks_bad_stats_30 (
+  network cidr PRIMARY KEY NOT NULL,
+  peer_network cidr NOT NULL,
+  CONSTRAINT network FOREIGN KEY (network) REFERENCES networks (network),
+  CONSTRAINT peer_network FOREIGN KEY (peer_network) REFERENCES networks (network)
+);
+
+DROP TABLE IF EXISTS networks_bad_stats_720 CASCADE;
+CREATE TABLE networks_bad_stats_720 (
+  network cidr PRIMARY KEY NOT NULL,
+  peer_network cidr NOT NULL,
+  CONSTRAINT network FOREIGN KEY (network) REFERENCES networks (network),
+  CONSTRAINT peer_network FOREIGN KEY (peer_network) REFERENCES networks (network)
+);
