@@ -5,17 +5,6 @@ CREATE TABLE channels_slots (
 );
 
 DROP TABLE IF EXISTS peers CASCADE;
-CREATE TABLE peers (
-  conn_id varchar(45) UNIQUE NOT NULL,
-  channel_id varchar(45) NOT NULL,
-  gg_id varchar(45) DEFAULT NULL,
-  ip inet NOT NULL,
-  CONSTRAINT peers_connid_channel PRIMARY KEY (conn_id,channel_id),
-  CONSTRAINT peers_channelid_slot FOREIGN KEY (channel_id) REFERENCES channels_slots (channel_id)
-);
-
-DROP TABLE IF EXISTS networks CASCADE;
-CREATE TABLE networks (
   network cidr PRIMARY KEY NOT NULL,
   asn int NOT NULL,
   country varchar(45) DEFAULT NULL,
@@ -32,6 +21,17 @@ CREATE TABLE peers_updates (
 );  
 
 DROP TABLE IF EXISTS peers_lists CASCADE;
+CREATE TABLE peers (
+  conn_id varchar(45) UNIQUE NOT NULL,
+  channel_id varchar(45) NOT NULL,
+  gg_id varchar(45) DEFAULT NULL,
+  ip inet NOT NULL,
+  CONSTRAINT peers_connid_channel PRIMARY KEY (conn_id,channel_id),
+  CONSTRAINT peers_channelid_slot FOREIGN KEY (channel_id) REFERENCES channels_slots (channel_id)
+);
+
+DROP TABLE IF EXISTS networks CASCADE;
+CREATE TABLE networks (
 CREATE TABLE peers_lists (
   conn_id varchar(45) NOT NULL,
   ts timestamp NOT NULL,
@@ -42,14 +42,14 @@ CREATE TABLE peers_lists (
 
 DROP TABLE IF EXISTS peers_good CASCADE;
 CREATE TABLE peers_good (
-  conn_id varchar(45) PRIMARY KEY NOT NULL,
+  conn_id varchar(45) NOT NULL,
   peer_conn_id varchar(45) NOT NULL,
   ts int NOT NULL,
   bytes int NOT NULL,
   ltime int DEFAULT NULL,
   CONSTRAINT peers_good_seed_conn_id FOREIGN KEY (conn_id) REFERENCES peers (conn_id),
   CONSTRAINT peers_good_peer_conn_id FOREIGN KEY (peer_conn_id) REFERENCES peers (conn_id),
-  CONSTRAINT peers_good_seed_peer_ts UNIQUE (conn_id,peer_conn_id,ts)
+  CONSTRAINT peers_good_seed_peer_ts PRIMARY KEY (conn_id,peer_conn_id,ts)
 );
 
 DROP TABLE IF EXISTS ip_good CASCADE;
