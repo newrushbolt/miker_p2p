@@ -18,6 +18,7 @@
 -- 410 - по региону
 -- 420 - по стране
 CREATE OR REPLACE FUNCTION genereate_peer_list(my_conn_id varchar(45), my_channel_id varchar(45)) RETURNS text AS $$
+BEGIN
 	-- Создаем временную таблицу для исключения уже добавленных пиров
 	create temp table tmp_sessionid1_exclude_conn_id (
 		conn_id varchar(45) UNIQUE NOT NULL,
@@ -36,7 +37,7 @@ CREATE OR REPLACE FUNCTION genereate_peer_list(my_conn_id varchar(45), my_channe
 	insert into tmp_sessionid1_exclude_conn_id (
 		select conn_id from (
 			select conn_id from peers 
-				where channel_id=my_channel_id 
+				where channel_id = :my_channel_id 
 				and (select count(distinct peer_conn_id) from peers_good where conn_id=peers.conn_id) > (select slots_per_seed from channels_settings)
 		) as conn_data
 		full join  (select 1 as type) as type_data on true where conn_data.conn_id != ''
@@ -125,6 +126,6 @@ CREATE OR REPLACE FUNCTION genereate_peer_list(my_conn_id varchar(45), my_channe
 	-- 400 - по городу
 	-- 410 - по региону
 	-- 420 - по стране
-
-	select * from tmp_sessionid1_peer_list;
-$$ LANGUAGE SQL;
+	return * from tmp_sessionid1_peer_list;
+END
+$$ LANGUAGE plpgsql;
