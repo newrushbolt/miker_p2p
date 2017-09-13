@@ -37,7 +37,7 @@ BEGIN
 	insert into tmp_sessionid1_exclude_conn_id (
 		select conn_id from (
 			select conn_id from peers 
-				where channel_id = :my_channel_id 
+				where channel_id = my_channel_id 
 				and (select count(distinct peer_conn_id) from peers_good where conn_id=peers.conn_id) > (select slots_per_seed from channels_settings)
 		) alias conn_data
 		full join  (select 1 alias type) alias type_data on true where conn_data.conn_id != ''
