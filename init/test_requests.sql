@@ -14,17 +14,34 @@ insert into peers_good values('connid2','connid1',111,200,1),('connid2','connid3
 -- 0 - сам пир
 -- 1 - перегруженные пиры
 -- 2 - сбойные по пир-пир таблице пиры
+-- ##Типы пиров в списке
+-- 100 - хорошие пиры + регион
+-- 110 - "хорошие сети" + город
+-- 120 - "хорошие сети" + регион
+-- 40  - ближайщая сеть,не крупнее /21
+-- 50 - сети(2 уровня) и AS(по ближайшей сети), не крупнее /21
+-- 30 - сети в пиринге, в максимум в два хопа(НЕ РЕАЛИЗОВАНО)
+-- 40 - сети между /21 и /16
+-- 50 - по ASN и городу
+-- 60 - по ASN и региону
+-- 70 - по городу
+-- 
 
 -- Создаем временную таблицу для исключения уже добавленных пиров
 create temp table tmp_sessionid1_exclude_conn_id (
 	conn_id varchar(45) UNIQUE NOT NULL,
 	type smallint NOT NULL
 );
+-- Создаем временную таблицу для списка пиров
+create temp table tmp_sessionid1_peer_list (
+	conn_id varchar(45) UNIQUE NOT NULL,
+	type smallint NOT NULL
+);
 
--- Добавляем в нее себя
+-- Добавляем в исключения себя
 insert into tmp_sessionid1_exclude_conn_id values('connid1',0);
 
--- Наполняем ее перегруженными пирами
+-- Добавляем в исключения перегруженные пиры
 insert into tmp_sessionid1_exclude_conn_id (
 	select * from (
 		select conn_id from peers 

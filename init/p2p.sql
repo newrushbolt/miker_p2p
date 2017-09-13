@@ -1,10 +1,14 @@
+-- настройки каналов, одновляет их p2p-сервис
 DROP TABLE IF EXISTS channels_slots CASCADE;
-CREATE TABLE channels_slots (
+CREATE TABLE channels_settings (
   channel_id varchar(45) UNIQUE PRIMARY KEY NOT NULL,
-  slot_limit int NOT NULL
+  slots_per_seed int NOT NULL,
+  seeds_in_list int NOT NULL
 );
 
-DROP TABLE IF EXISTS peers CASCADE;
+-- список сетей с гео и ip информацией, обновляется отдельным приложением
+DROP TABLE IF EXISTS networks CASCADE;
+CREATE TABLE networks (
   network cidr PRIMARY KEY NOT NULL,
   asn int NOT NULL,
   country varchar(45) DEFAULT NULL,
@@ -13,6 +17,18 @@ DROP TABLE IF EXISTS peers CASCADE;
   CONSTRAINT networks_network_asn UNIQUE (network,asn)
 );
 
+-- онлайн-пиры, обновляются с запросов на подключение, логов, и системой очистки устаревших/зависших пиров
+DROP TABLE IF EXISTS peers CASCADE;
+CREATE TABLE peers (
+  conn_id varchar(45) UNIQUE NOT NULL,
+  channel_id varchar(45) NOT NULL,
+  gg_id varchar(45) DEFAULT NULL,
+  ip inet NOT NULL,
+  CONSTRAINT peers_connid_channel PRIMARY KEY (conn_id,channel_id),
+  CONSTRAINT peers_channelid_slot FOREIGN KEY (channel_id) REFERENCES channels_settings (channel_id)
+);
+
+-- timestamp пиров, обновляются с логов
 DROP TABLE IF EXISTS peers_updates CASCADE;
 CREATE TABLE peers_updates (
   conn_id varchar(45) UNIQUE PRIMARY KEY NOT NULL,
@@ -20,18 +36,8 @@ CREATE TABLE peers_updates (
   CONSTRAINT peers_updates_peer_conn_id FOREIGN KEY (conn_id) REFERENCES peers (conn_id)
 );  
 
+-- списки пиров в json, создаются генератором
 DROP TABLE IF EXISTS peers_lists CASCADE;
-CREATE TABLE peers (
-  conn_id varchar(45) UNIQUE NOT NULL,
-  channel_id varchar(45) NOT NULL,
-  gg_id varchar(45) DEFAULT NULL,
-  ip inet NOT NULL,
-  CONSTRAINT peers_connid_channel PRIMARY KEY (conn_id,channel_id),
-  CONSTRAINT peers_channelid_slot FOREIGN KEY (channel_id) REFERENCES channels_slots (channel_id)
-);
-
-DROP TABLE IF EXISTS networks CASCADE;
-CREATE TABLE networks (
 CREATE TABLE peers_lists (
   conn_id varchar(45) NOT NULL,
   ts timestamp NOT NULL,
@@ -40,6 +46,7 @@ CREATE TABLE peers_lists (
   CONSTRAINT peers_lists_peer_conn_id FOREIGN KEY (conn_id) REFERENCES peers (conn_id)
 );
 
+-- моментальная статистика успешных скачиваний по CONN_ID, обновляется с логов
 DROP TABLE IF EXISTS peers_good CASCADE;
 CREATE TABLE peers_good (
   conn_id varchar(45) NOT NULL,
@@ -52,6 +59,7 @@ CREATE TABLE peers_good (
   CONSTRAINT peers_good_seed_peer_ts PRIMARY KEY (conn_id,peer_conn_id,ts)
 );
 
+-- моментальная статистика успешных скачиваний по IP, обновляется с логов
 DROP TABLE IF EXISTS ip_good CASCADE;
 CREATE TABLE ip_good (
   ip inet PRIMARY KEY NOT NULL,
@@ -62,6 +70,7 @@ CREATE TABLE ip_good (
   CONSTRAINT ip_good_seed_peer_ts UNIQUE (ip,peer_ip,ts)
 );
 
+-- моментальная статистика провальных скачиваний по CONN_ID, обновляется с логов
 DROP TABLE IF EXISTS peers_bad CASCADE;
 CREATE TABLE peers_bad (
   conn_id varchar(45) PRIMARY KEY NOT NULL,
@@ -72,6 +81,7 @@ CREATE TABLE peers_bad (
   CONSTRAINT peers_bad_seed_peer_ts UNIQUE (conn_id,peer_conn_id,ts)
 );
 
+-- моментальная статистика провальных скачиваний по IP, обновляется с логов
 DROP TABLE IF EXISTS ip_bad CASCADE;
 CREATE TABLE ip_bad (
   ip inet PRIMARY KEY NOT NULL,
@@ -80,6 +90,7 @@ CREATE TABLE ip_bad (
   CONSTRAINT ip_bad_seed_peer_ts UNIQUE (ip,peer_ip,ts)
 );
 
+-- накопительная статистика успешных скачиваний между сетями, выборка за полчаса, обновляется с ip_good
 DROP TABLE IF EXISTS networks_good_stats_30 CASCADE;
 CREATE TABLE networks_good_stats_30 (
   network cidr PRIMARY KEY NOT NULL,
@@ -88,6 +99,7 @@ CREATE TABLE networks_good_stats_30 (
   CONSTRAINT networks_good_stats_30_peer_network FOREIGN KEY (peer_network) REFERENCES networks (network)
 );
 
+-- накопительная статистика успешных скачиваний между сетями, выборка за сутки, обновляется с ip_good
 DROP TABLE IF EXISTS networks_good_stats_720 CASCADE;
 CREATE TABLE networks_good_stats_720 (
   network cidr PRIMARY KEY NOT NULL,
@@ -96,6 +108,7 @@ CREATE TABLE networks_good_stats_720 (
   CONSTRAINT networks_good_stats_720_peer_network FOREIGN KEY (peer_network) REFERENCES networks (network)
 );
 
+-- накопительная статистика провальных скачиваний между сетями, выборка за полчаса, обновляется с ip_bad
 DROP TABLE IF EXISTS networks_bad_stats_30 CASCADE;
 CREATE TABLE networks_bad_stats_30 (
   network cidr PRIMARY KEY NOT NULL,
@@ -104,6 +117,7 @@ CREATE TABLE networks_bad_stats_30 (
   CONSTRAINT networks_bad_stats_30_peer_network FOREIGN KEY (peer_network) REFERENCES networks (network)
 );
 
+-- накопительная статистика провальных скачиваний между сетями, выборка за час, обновляется с ip_bad
 DROP TABLE IF EXISTS networks_bad_stats_720 CASCADE;
 CREATE TABLE networks_bad_stats_720 (
   network cidr PRIMARY KEY NOT NULL,
