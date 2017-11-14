@@ -64,23 +64,23 @@ BEGIN
 	-- );
 
 	-- 130 - "хорошие сети" + регион
-	-- insert into tmp_sessionid1_peer_list (
-	-- 	select conn_id from (
-	-- 		select conn_id from peers
-	-- 			where conn_id NOT IN (select conn_id from tmp_sessionid1_exclude_conn_id)
-	-- 			and ip << ANY (
-	-- 				select network from networks
-	-- 					where network in (
-	-- 						select network from networks_good_stats_30 where peer_network << (
-	-- 							select ip from peers where conn_id = my_conn_id)
-	-- 					)
-	-- 					and city = (
-	-- 						select region from networks where network << (select ip from peers where conn_id = my_conn_id)
-	-- 					)
-	-- 			)
-	-- 	) alias conn_data
-	-- 	full join (select 130 alias type) alias type_data on true where conn_data.conn_id != ''
-	-- );
+	insert into tmp_sessionid1_peer_list (
+		select conn_data.conn_id,type_data.type from (
+			select peers.conn_id from peers
+				where peers.conn_id NOT IN (select tmp_sessionid1_exclude_conn_id.conn_id from tmp_sessionid1_exclude_conn_id)
+				and ip << ANY (
+					select networks.network from networks
+						where networks.network in (
+							select networks_good_stats_30.network from networks_good_stats_30 where networks_good_stats_30.peer_network << (
+								select peers.ip from peers where peers.conn_id = my_conn_id)
+						)
+						and city = (
+							select region from networks where network << (select peers.ip from peers where peers.conn_id = my_conn_id)
+						)
+				)
+		) as conn_data,
+		(select 130 as type) as type_data
+		);
 
 	-- -- 200  - ближайщая сеть,не крупнее /23
 	insert into tmp_sessionid1_peer_list (
