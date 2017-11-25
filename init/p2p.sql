@@ -1,3 +1,7 @@
+-- Добавляет пользователя p2p
+DROP USER IF EXISTS p2p;
+CREATE USER p2p;
+
 -- настройки каналов, обновляет их p2p-сервис
 DROP TABLE IF EXISTS channels_settings CASCADE;
 CREATE TABLE channels_settings (
