@@ -1,4 +1,4 @@
--- настройки каналов, одновляет их p2p-сервис
+-- настройки каналов, обновляет их p2p-сервис
 DROP TABLE IF EXISTS channels_settings CASCADE;
 CREATE TABLE channels_settings (
   channel_id varchar(45) UNIQUE PRIMARY KEY NOT NULL,
@@ -37,7 +37,7 @@ CREATE TABLE peers_updates (
   conn_id varchar(45) UNIQUE PRIMARY KEY NOT NULL,
   last_update timestamp NOT NULL,
   CONSTRAINT peers_updates_peer_conn_id FOREIGN KEY (conn_id) REFERENCES peers (conn_id)
-);  
+);
 ALTER TABLE peers_updates OWNER to p2p;
 
 -- списки пиров в json, создаются генератором
