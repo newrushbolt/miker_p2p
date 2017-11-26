@@ -16,12 +16,12 @@ BEGIN
 	insert into tmp_exclude_conn_id values(my_conn_id,0);
 
 	-- Добавляем в исключения перегруженные пиры
-	insert into tmp_exclude_conn_id (
-		select conn_data.conn_id,type_data.type from (select * from peers
-				where peers.channel_id = my_channel_id
-				and (select count(distinct peer_conn_id) from peers_good where peers_good.conn_id=peers.conn_id) > (select slots_per_seed from channels_settings)) as conn_data,
-		(select 1 as type) as type_data
-	);
+	-- insert into tmp_exclude_conn_id (
+	-- 	select conn_data.conn_id,type_data.type from (select * from peers
+	-- 			where peers.channel_id = my_channel_id
+	-- 			and (select count(distinct peer_conn_id) from peers_good where peers_good.conn_id=peers.conn_id) > (select slots_per_seed from channels_settings)) as conn_data,
+	-- 	(select 1 as type) as type_data
+	-- );
 
 	-- 100 - хорошие пиры + город
 	-- select conn_id,bytes/ltime alias speed FROM peers_good where peer_conn_id=my_conn_id;
