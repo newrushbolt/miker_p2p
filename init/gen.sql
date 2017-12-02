@@ -68,7 +68,8 @@ BEGIN
 	insert into tmp_peer_list (
 		select conn_data.conn_id,type_data.type from (
 			select peers.conn_id from peers
-				where peers.conn_id NOT IN (select tmp_exclude_conn_id.conn_id from tmp_exclude_conn_id)
+				where peers.channel_id = my_channel_id
+				and peers.conn_id NOT IN (select tmp_exclude_conn_id.conn_id from tmp_exclude_conn_id)
 				and ip << ANY (
 					select networks.network from networks
 	 					where network >> ANY (select peers.ip from peers where peers.conn_id=my_conn_id)
@@ -83,7 +84,8 @@ BEGIN
 	insert into tmp_peer_list (
 		select conn_data.conn_id,type_data.type from (
 			select peers.conn_id from peers
-				where peers.conn_id NOT IN (select tmp_exclude_conn_id.conn_id from tmp_exclude_conn_id)
+				where peers.channel_id = my_channel_id
+				and peers.conn_id NOT IN (select tmp_exclude_conn_id.conn_id from tmp_exclude_conn_id)
 				and peers.conn_id NOT IN (select tmp_peer_list.conn_id from tmp_peer_list)
 				and peers.ip << ANY (
 					select networks.network from networks
@@ -104,7 +106,8 @@ BEGIN
 	insert into tmp_peer_list (
 		select conn_data.conn_id,type_data.type from (
 			select peers.conn_id from peers
-				where peers.conn_id NOT IN (select tmp_exclude_conn_id.conn_id from tmp_exclude_conn_id)
+				where peers.channel_id = my_channel_id
+				and peers.conn_id NOT IN (select tmp_exclude_conn_id.conn_id from tmp_exclude_conn_id)
 				and peers.conn_id NOT IN (select tmp_peer_list.conn_id from tmp_peer_list)
 				and peers.ip << ANY (
 					select networks.network from networks
@@ -123,7 +126,8 @@ BEGIN
 	insert into tmp_peer_list (
 		select conn_data.conn_id,type_data.type from (
 			select peers.conn_id from peers
-				where peers.conn_id NOT IN (select tmp_exclude_conn_id.conn_id from tmp_exclude_conn_id)
+				where peers.channel_id = my_channel_id
+				and peers.conn_id NOT IN (select tmp_exclude_conn_id.conn_id from tmp_exclude_conn_id)
 				and peers.conn_id NOT IN (select tmp_peer_list.conn_id from tmp_peer_list)
 				and peers.ip << ANY (
 					select networks.network from networks
@@ -146,7 +150,8 @@ BEGIN
 	insert into tmp_peer_list (
 		select conn_data.conn_id,type_data.type from (
 			select peers.conn_id from peers
-				where peers.conn_id NOT IN (select tmp_exclude_conn_id.conn_id from tmp_exclude_conn_id)
+				where peers.channel_id = my_channel_id
+				and peers.conn_id NOT IN (select tmp_exclude_conn_id.conn_id from tmp_exclude_conn_id)
 				and peers.conn_id NOT IN (select tmp_peer_list.conn_id from tmp_peer_list)
 				and peers.ip << ANY (
 					select networks.network from networks
@@ -169,7 +174,8 @@ BEGIN
 	insert into tmp_peer_list (
 		select conn_data.conn_id,type_data.type from (
 			select peers.conn_id from peers
-				where peers.conn_id NOT IN (select tmp_exclude_conn_id.conn_id from tmp_exclude_conn_id)
+				where peers.channel_id = my_channel_id
+				and peers.conn_id NOT IN (select tmp_exclude_conn_id.conn_id from tmp_exclude_conn_id)
 				and peers.conn_id NOT IN (select tmp_peer_list.conn_id from tmp_peer_list)
 				and peers.ip << ANY (
 					select networks.network from networks
@@ -187,7 +193,8 @@ BEGIN
 	insert into tmp_peer_list (
 		select conn_data.conn_id,type_data.type from (
 			select peers.conn_id from peers
-				where peers.conn_id NOT IN (select tmp_exclude_conn_id.conn_id from tmp_exclude_conn_id)
+				where peers.channel_id = my_channel_id
+				and peers.conn_id NOT IN (select tmp_exclude_conn_id.conn_id from tmp_exclude_conn_id)
 				and peers.conn_id NOT IN (select tmp_peer_list.conn_id from tmp_peer_list)
 				and peers.ip << ANY (
 					select networks.network from networks
@@ -205,7 +212,8 @@ BEGIN
 	insert into tmp_peer_list (
 		select conn_data.conn_id,type_data.type from (
 			select peers.conn_id from peers
-				where peers.conn_id NOT IN (select tmp_exclude_conn_id.conn_id from tmp_exclude_conn_id)
+				where peers.channel_id = my_channel_id
+				and peers.conn_id NOT IN (select tmp_exclude_conn_id.conn_id from tmp_exclude_conn_id)
 				and peers.conn_id NOT IN (select tmp_peer_list.conn_id from tmp_peer_list)
 				and peers.ip << ANY (
 					select networks.network from networks
