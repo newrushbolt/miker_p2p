@@ -1,4 +1,4 @@
-CREATE OR REPLACE FUNCTION genereate_peer_list(my_conn_id varchar(45), my_channel_id varchar(45)) RETURNS TABLE(conn_id varchar(45), type smallint) AS $$
+CREATE OR REPLACE FUNCTION genereate_peer_list(my_conn_id varchar(45), my_channel_id varchar(45),required_peers_num smallint) RETURNS TABLE(conn_id varchar(45), type smallint) AS $$
 BEGIN
 	-- Создаем временную таблицу для исключения уже добавленных пиров
 	create temp table tmp_exclude_conn_id (
@@ -74,8 +74,8 @@ BEGIN
 	 					where network >> ANY (select peers.ip from peers where peers.conn_id=my_conn_id)
 	 					and masklen(network) >= 23
 						order by network desc limit 1
-				)
-		) conn_data,
+				) limit required_peers_num
+		) as conn_data,
 		(select 200 as type) as type_data
 	);
 
@@ -94,7 +94,7 @@ BEGIN
 								select peers.ip from peers where peers.conn_id=my_conn_id) << networks.network
 							order by networks.network desc limit 1
 						)
-				)
+				) limit required_peers_num
 		) as conn_data,
 		(select 210 as type) as type_data
 	);
@@ -114,7 +114,7 @@ BEGIN
 								select peers.ip from peers where peers.conn_id=my_conn_id) << networks.network
 							order by networks.network desc limit 1
 						)
-				)
+				) limit required_peers_num
 		) as conn_data,
 	(select 230 as type) as type_data
 	);
@@ -137,7 +137,7 @@ BEGIN
 								select peers.ip from peers where peers.conn_id=my_conn_id) << networks.network
 							order by networks.network desc limit 1
 						)
-				)
+				) limit required_peers_num
 		) as conn_data,
 	(select 300 as type) as type_data
 	);
@@ -160,7 +160,7 @@ BEGIN
 								select peers.ip from peers where peers.conn_id=my_conn_id) << networks.network
 							order by networks.network desc limit 1
 						)
-				)
+				) limit required_peers_num
 		) as conn_data,
 	(select 310 as type) as type_data
 	);
@@ -178,7 +178,7 @@ BEGIN
 								select peers.ip from peers where peers.conn_id=my_conn_id) << networks.network
 							order by networks.network desc limit 1
 						)
-				)
+				) limit required_peers_num
 		) as conn_data,
 	(select 400 as type) as type_data
 	);
@@ -196,7 +196,7 @@ BEGIN
 								select peers.ip from peers where peers.conn_id=my_conn_id) << networks.network
 							order by networks.network desc limit 1
 						)
-				)
+				) limit required_peers_num
 		) as conn_data,
 	(select 410 as type) as type_data
 	);
@@ -214,7 +214,7 @@ BEGIN
 								select peers.ip from peers where peers.conn_id=my_conn_id) << networks.network
 							order by networks.network desc limit 1
 						)
-				)
+				) limit required_peers_num
 		) as conn_data,
 	(select 420 as type) as type_data
 	);
