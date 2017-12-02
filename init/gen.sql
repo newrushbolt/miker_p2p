@@ -221,6 +221,8 @@ BEGIN
 
 	RETURN QUERY
 		select * from tmp_peer_list;
+	drop table tmp_exclude_conn_id;
+	drop table tmp_peer_list;
 END
 $$ LANGUAGE plpgsql;
 
