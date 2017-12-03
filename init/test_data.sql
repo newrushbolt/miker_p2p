@@ -42,7 +42,7 @@ insert into peers values
 	-- His neighbor from same country
 	('connid10','channel1','ggid10','179.40.153.11');
 
-insert into peers_good values
-	('connid2','connid1',111,200,1),
-	('connid2','connid3',111,300,2),
-	('connid2','connid4',111,900,6);
+-- insert into peers_good values
+-- 	('connid2','connid1',111,200,1),
+-- 	('connid2','connid3',111,300,2),
+-- 	('connid2','connid4',111,900,6);

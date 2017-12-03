@@ -75,157 +75,157 @@ BEGIN
 	 					where network >> ANY (select peers.ip from peers where peers.conn_id=my_conn_id)
 	 					and masklen(network) >= 23
 						order by network desc limit 1
-				) limit required_peers_num
+				) order by peers.conn_id limit required_peers_num
 		) as conn_data,
 		(select 200 as type) as type_data
 	);
 
-	-- -- 210 - Пиры в соседних сетях по AS сети, не крупнее /21
-	insert into tmp_peer_list (
-		select conn_data.conn_id,type_data.type from (
-			select peers.conn_id from peers
-				where peers.channel_id = my_channel_id
-				and peers.conn_id NOT IN (select tmp_exclude_conn_id.conn_id from tmp_exclude_conn_id)
-				and peers.conn_id NOT IN (select tmp_peer_list.conn_id from tmp_peer_list)
-				and peers.ip << ANY (
-					select networks.network from networks
-	 					-- where networks.network >> ANY (select peers.ip from peers where peers.conn_id=my_conn_id)
-						where masklen(networks.network) > 21
-						and asn = (
-							select networks.asn from networks where (
-								select peers.ip from peers where peers.conn_id=my_conn_id) << networks.network
-							order by networks.network desc limit 1
-						)
-				) limit required_peers_num
-		) as conn_data,
-		(select 210 as type) as type_data
-	);
+	-- -- -- 210 - Пиры в соседних сетях по AS сети, не крупнее /21
+	-- insert into tmp_peer_list (
+	-- 	select conn_data.conn_id,type_data.type from (
+	-- 		select peers.conn_id from peers
+	-- 			where peers.channel_id = my_channel_id
+	-- 			and peers.conn_id NOT IN (select tmp_exclude_conn_id.conn_id from tmp_exclude_conn_id)
+	-- 			and peers.conn_id NOT IN (select tmp_peer_list.conn_id from tmp_peer_list)
+	-- 			and peers.ip << ANY (
+	-- 				select networks.network from networks
+	--  					-- where networks.network >> ANY (select peers.ip from peers where peers.conn_id=my_conn_id)
+	-- 					where masklen(networks.network) > 21
+	-- 					and asn = (
+	-- 						select networks.asn from networks where (
+	-- 							select peers.ip from peers where peers.conn_id=my_conn_id) << networks.network
+	-- 						order by networks.network desc limit 1
+	-- 					)
+	-- 			) limit required_peers_num
+	-- 	) as conn_data,
+	-- 	(select 210 as type) as type_data
+	-- );
 
-	-- 220 - сети в пиринге, в максимум в два хопа(НЕ РЕАЛИЗОВАНО)
-	-- 230 - Пиры в соседних сетях по AS сети, между /21 и /16
-	insert into tmp_peer_list (
-		select conn_data.conn_id,type_data.type from (
-			select peers.conn_id from peers
-				where peers.channel_id = my_channel_id
-				and peers.conn_id NOT IN (select tmp_exclude_conn_id.conn_id from tmp_exclude_conn_id)
-				and peers.conn_id NOT IN (select tmp_peer_list.conn_id from tmp_peer_list)
-				and peers.ip << ANY (
-					select networks.network from networks
-						where masklen(networks.network) between 16 and 21
-						and asn = (
-							select networks.asn from networks where (
-								select peers.ip from peers where peers.conn_id=my_conn_id) << networks.network
-							order by networks.network desc limit 1
-						)
-				) limit required_peers_num
-		) as conn_data,
-	(select 230 as type) as type_data
-	);
+	-- -- 220 - сети в пиринге, в максимум в два хопа(НЕ РЕАЛИЗОВАНО)
+	-- -- 230 - Пиры в соседних сетях по AS сети, между /21 и /16
+	-- insert into tmp_peer_list (
+	-- 	select conn_data.conn_id,type_data.type from (
+	-- 		select peers.conn_id from peers
+	-- 			where peers.channel_id = my_channel_id
+	-- 			and peers.conn_id NOT IN (select tmp_exclude_conn_id.conn_id from tmp_exclude_conn_id)
+	-- 			and peers.conn_id NOT IN (select tmp_peer_list.conn_id from tmp_peer_list)
+	-- 			and peers.ip << ANY (
+	-- 				select networks.network from networks
+	-- 					where masklen(networks.network) between 16 and 21
+	-- 					and asn = (
+	-- 						select networks.asn from networks where (
+	-- 							select peers.ip from peers where peers.conn_id=my_conn_id) << networks.network
+	-- 						order by networks.network desc limit 1
+	-- 					)
+	-- 			) limit required_peers_num
+	-- 	) as conn_data,
+	-- (select 230 as type) as type_data
+	-- );
 
-	-- 300 - Пиры в соседних сетях по AS сети и городу
-	insert into tmp_peer_list (
-		select conn_data.conn_id,type_data.type from (
-			select peers.conn_id from peers
-				where peers.channel_id = my_channel_id
-				and peers.conn_id NOT IN (select tmp_exclude_conn_id.conn_id from tmp_exclude_conn_id)
-				and peers.conn_id NOT IN (select tmp_peer_list.conn_id from tmp_peer_list)
-				and peers.ip << ANY (
-					select networks.network from networks
-						where networks.asn = (
-							select networks.asn from networks where (
-								select peers.ip from peers where peers.conn_id=my_conn_id) << networks.network
-							order by networks.network desc limit 1
-						)
-						and networks.city = (
-							select networks.city from networks where (
-								select peers.ip from peers where peers.conn_id=my_conn_id) << networks.network
-							order by networks.network desc limit 1
-						)
-				) limit required_peers_num
-		) as conn_data,
-	(select 300 as type) as type_data
-	);
+	-- -- 300 - Пиры в соседних сетях по AS сети и городу
+	-- insert into tmp_peer_list (
+	-- 	select conn_data.conn_id,type_data.type from (
+	-- 		select peers.conn_id from peers
+	-- 			where peers.channel_id = my_channel_id
+	-- 			and peers.conn_id NOT IN (select tmp_exclude_conn_id.conn_id from tmp_exclude_conn_id)
+	-- 			and peers.conn_id NOT IN (select tmp_peer_list.conn_id from tmp_peer_list)
+	-- 			and peers.ip << ANY (
+	-- 				select networks.network from networks
+	-- 					where networks.asn = (
+	-- 						select networks.asn from networks where (
+	-- 							select peers.ip from peers where peers.conn_id=my_conn_id) << networks.network
+	-- 						order by networks.network desc limit 1
+	-- 					)
+	-- 					and networks.city = (
+	-- 						select networks.city from networks where (
+	-- 							select peers.ip from peers where peers.conn_id=my_conn_id) << networks.network
+	-- 						order by networks.network desc limit 1
+	-- 					)
+	-- 			) limit required_peers_num
+	-- 	) as conn_data,
+	-- (select 300 as type) as type_data
+	-- );
 
-	-- 310 - Пиры в соседних сетях по AS сети и региону
-	insert into tmp_peer_list (
-		select conn_data.conn_id,type_data.type from (
-			select peers.conn_id from peers
-				where peers.channel_id = my_channel_id
-				and peers.conn_id NOT IN (select tmp_exclude_conn_id.conn_id from tmp_exclude_conn_id)
-				and peers.conn_id NOT IN (select tmp_peer_list.conn_id from tmp_peer_list)
-				and peers.ip << ANY (
-					select networks.network from networks
-						where networks.asn = (
-							select networks.asn from networks where (
-								select peers.ip from peers where peers.conn_id=my_conn_id) << networks.network
-							order by networks.network desc limit 1
-						)
-						and networks.region = (
-							select networks.region from networks where (
-								select peers.ip from peers where peers.conn_id=my_conn_id) << networks.network
-							order by networks.network desc limit 1
-						)
-				) limit required_peers_num
-		) as conn_data,
-	(select 310 as type) as type_data
-	);
+	-- -- 310 - Пиры в соседних сетях по AS сети и региону
+	-- insert into tmp_peer_list (
+	-- 	select conn_data.conn_id,type_data.type from (
+	-- 		select peers.conn_id from peers
+	-- 			where peers.channel_id = my_channel_id
+	-- 			and peers.conn_id NOT IN (select tmp_exclude_conn_id.conn_id from tmp_exclude_conn_id)
+	-- 			and peers.conn_id NOT IN (select tmp_peer_list.conn_id from tmp_peer_list)
+	-- 			and peers.ip << ANY (
+	-- 				select networks.network from networks
+	-- 					where networks.asn = (
+	-- 						select networks.asn from networks where (
+	-- 							select peers.ip from peers where peers.conn_id=my_conn_id) << networks.network
+	-- 						order by networks.network desc limit 1
+	-- 					)
+	-- 					and networks.region = (
+	-- 						select networks.region from networks where (
+	-- 							select peers.ip from peers where peers.conn_id=my_conn_id) << networks.network
+	-- 						order by networks.network desc limit 1
+	-- 					)
+	-- 			) limit required_peers_num
+	-- 	) as conn_data,
+	-- (select 310 as type) as type_data
+	-- );
 
-	-- 400 - Пиры в соседних сетях по городу
-	insert into tmp_peer_list (
-		select conn_data.conn_id,type_data.type from (
-			select peers.conn_id from peers
-				where peers.channel_id = my_channel_id
-				and peers.conn_id NOT IN (select tmp_exclude_conn_id.conn_id from tmp_exclude_conn_id)
-				and peers.conn_id NOT IN (select tmp_peer_list.conn_id from tmp_peer_list)
-				and peers.ip << ANY (
-					select networks.network from networks
-						where networks.city = (
-							select networks.city from networks where (
-								select peers.ip from peers where peers.conn_id=my_conn_id) << networks.network
-							order by networks.network desc limit 1
-						)
-				) limit required_peers_num
-		) as conn_data,
-	(select 400 as type) as type_data
-	);
+	-- -- 400 - Пиры в соседних сетях по городу
+	-- insert into tmp_peer_list (
+	-- 	select conn_data.conn_id,type_data.type from (
+	-- 		select peers.conn_id from peers
+	-- 			where peers.channel_id = my_channel_id
+	-- 			and peers.conn_id NOT IN (select tmp_exclude_conn_id.conn_id from tmp_exclude_conn_id)
+	-- 			and peers.conn_id NOT IN (select tmp_peer_list.conn_id from tmp_peer_list)
+	-- 			and peers.ip << ANY (
+	-- 				select networks.network from networks
+	-- 					where networks.city = (
+	-- 						select networks.city from networks where (
+	-- 							select peers.ip from peers where peers.conn_id=my_conn_id) << networks.network
+	-- 						order by networks.network desc limit 1
+	-- 					)
+	-- 			) limit required_peers_num
+	-- 	) as conn_data,
+	-- (select 400 as type) as type_data
+	-- );
 
-	-- 410 - Пиры в соседних сетях по региону
-	insert into tmp_peer_list (
-		select conn_data.conn_id,type_data.type from (
-			select peers.conn_id from peers
-				where peers.channel_id = my_channel_id
-				and peers.conn_id NOT IN (select tmp_exclude_conn_id.conn_id from tmp_exclude_conn_id)
-				and peers.conn_id NOT IN (select tmp_peer_list.conn_id from tmp_peer_list)
-				and peers.ip << ANY (
-					select networks.network from networks
-						where networks.region = (
-							select networks.region from networks where (
-								select peers.ip from peers where peers.conn_id=my_conn_id) << networks.network
-							order by networks.network desc limit 1
-						)
-				) limit required_peers_num
-		) as conn_data,
-	(select 410 as type) as type_data
-	);
+	-- -- 410 - Пиры в соседних сетях по региону
+	-- insert into tmp_peer_list (
+	-- 	select conn_data.conn_id,type_data.type from (
+	-- 		select peers.conn_id from peers
+	-- 			where peers.channel_id = my_channel_id
+	-- 			and peers.conn_id NOT IN (select tmp_exclude_conn_id.conn_id from tmp_exclude_conn_id)
+	-- 			and peers.conn_id NOT IN (select tmp_peer_list.conn_id from tmp_peer_list)
+	-- 			and peers.ip << ANY (
+	-- 				select networks.network from networks
+	-- 					where networks.region = (
+	-- 						select networks.region from networks where (
+	-- 							select peers.ip from peers where peers.conn_id=my_conn_id) << networks.network
+	-- 						order by networks.network desc limit 1
+	-- 					)
+	-- 			) limit required_peers_num
+	-- 	) as conn_data,
+	-- (select 410 as type) as type_data
+	-- );
 
-	-- 420 - Пиры в соседних сетях по стране
-	insert into tmp_peer_list (
-		select conn_data.conn_id,type_data.type from (
-			select peers.conn_id from peers
-				where peers.channel_id = my_channel_id
-				and peers.conn_id NOT IN (select tmp_exclude_conn_id.conn_id from tmp_exclude_conn_id)
-				and peers.conn_id NOT IN (select tmp_peer_list.conn_id from tmp_peer_list)
-				and peers.ip << ANY (
-					select networks.network from networks
-						where networks.country = (
-							select networks.country from networks where (
-								select peers.ip from peers where peers.conn_id=my_conn_id) << networks.network
-							order by networks.network desc limit 1
-						)
-				) limit required_peers_num
-		) as conn_data,
-	(select 420 as type) as type_data
-	);
+	-- -- 420 - Пиры в соседних сетях по стране
+	-- insert into tmp_peer_list (
+	-- 	select conn_data.conn_id,type_data.type from (
+	-- 		select peers.conn_id from peers
+	-- 			where peers.channel_id = my_channel_id
+	-- 			and peers.conn_id NOT IN (select tmp_exclude_conn_id.conn_id from tmp_exclude_conn_id)
+	-- 			and peers.conn_id NOT IN (select tmp_peer_list.conn_id from tmp_peer_list)
+	-- 			and peers.ip << ANY (
+	-- 				select networks.network from networks
+	-- 					where networks.country = (
+	-- 						select networks.country from networks where (
+	-- 							select peers.ip from peers where peers.conn_id=my_conn_id) << networks.network
+	-- 						order by networks.network desc limit 1
+	-- 					)
+	-- 			) limit required_peers_num
+	-- 	) as conn_data,
+	-- (select 420 as type) as type_data
+	-- );
 
 	RETURN QUERY
 		select * from tmp_peer_list;
