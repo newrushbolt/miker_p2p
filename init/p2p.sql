@@ -19,8 +19,9 @@ CREATE USER p2p with encrypted password 'p2p' login;
 -- настройки каналов, обновляет их p2p-сервис
 CREATE TABLE channels_settings (
   channel_id varchar(45) UNIQUE PRIMARY KEY NOT NULL,
-  slots_per_seed int NOT NULL,
-  seeds_in_list int NOT NULL
+  channel_i_id int UNIQUE default (round(random() * 1000000000)),
+  slots_per_seed int default 5,
+  seeds_in_list int default 30
 );
 ALTER TABLE channels_settings OWNER to p2p;
 
@@ -34,13 +35,25 @@ CREATE TABLE networks (
   CONSTRAINT networks_network_asn UNIQUE (network,asn)
 );
 CREATE INDEX networks_network_gist on networks using gist (network inet_ops);
-CREATE INDEX networks_network_asn_city on networks (network,asn,city);
-CREATE INDEX networks_network_asn_region on networks (network,asn,region);
-CREATE INDEX networks_network_asn_country on networks (network,asn,country);
-CREATE INDEX networks_network_city on networks (network,city);
-CREATE INDEX networks_network_region on networks (network,region);
-CREATE INDEX networks_network_country on networks (network,country);
+CREATE INDEX networks_network_gist_v2 on networks using gist ((masklen(networks.network)) >= 23);
+CREATE INDEX networks_network_asn_city_v2 on networks (network,masklen(network),asn,city);
+CREATE INDEX networks_network_asn_region_v2 on networks (network,masklen(network),asn,region);
+CREATE INDEX networks_network_asn_country_v2 on networks (network,masklen(network),asn,country);
+CREATE INDEX networks_network_city_v2 on networks (network,masklen(network),city);
+CREATE INDEX networks_network_v2 on networks (network,masklen(network));
+CREATE INDEX networks_network_v3 on networks (network desc,masklen(network));
+CREATE INDEX networks_network_region_v2 on networks (network,masklen(network),region);
+CREATE INDEX networks_network_country_v2 on networks (network,masklen(network),country);
 ALTER TABLE networks OWNER to p2p;
+
+CREATE TABLE networks_v2 (
+  network range ip4r NOT NULL,
+  asn int NOT NULL,
+  country varchar(45) DEFAULT NULL,
+  region varchar(45) DEFAULT NULL,
+  city varchar(45) DEFAULT NULL,
+  CONSTRAINT networks_network_asn UNIQUE (network,asn)
+);
 
 -- список сетей с гео информацией, обновляется отдельным приложением
 -- CREATE TABLE networks (
@@ -64,6 +77,13 @@ CREATE TABLE peers (
 CREATE INDEX peers_conn_channel_ip ON peers (conn_id,channel_id,ip);
 ALTER TABLE peers OWNER to p2p;
 
+CREATE TABLE peers_v2 (
+  conn_id varchar(45) NOT NULL,
+  channel_id varchar(45) NOT NULL,
+  gg_id varchar(45) DEFAULT NULL,
+  ip inet NOT NULL
+) PARTITION by list (channel_id);
+ALTER TABLE peers_v2 OWNER to p2p;
 
 -- timestamp пиров, обновляются с логов
 CREATE TABLE peers_updates (

@@ -5,8 +5,7 @@ truncate table networks CASCADE;
 truncate table peers_good CASCADE;
 
 -- Инжектим тестовые данные
-insert into channels_settings values
-	('channel1',3,10);
+insert into channels_settings values ('channel1');
 
 insert into networks values
 	('185.40.152.0/24',1,'RU','NW','SPB'),
@@ -46,3 +45,7 @@ insert into peers values
 -- 	('connid2','connid1',111,200,1),
 -- 	('connid2','connid3',111,300,2),
 -- 	('connid2','connid4',111,900,6);
+
+insert into peers_v2 values ('connid1','channel1','ggid1','185.40.152.12');
+insert into peers_v2 values ('connid1','channel3','ggid1','185.40.152.12');
+insert into peers_v2 values ('connid1','channel2','ggid1','185.40.152.12');

@@ -1,3 +1,58 @@
+CREATE OR REPLACE FUNCTION migrate_peers_to_v2_f() RETURNS TRIGGER AS $$
+BEGIN
+	RAISE NOTICE 'Migrating user %', OLD.conn_id;
+	perform insert_new_peer(OLD.conn_id,OLD.channel_id,OLD.ip,OLD.gg_id);
+	RETURN OLD;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER migrate_peers_to_v2 BEFORE DELETE on peers
+FOR EACH ROW EXECUTE PROCEDURE migrate_peers_to_v2_f();
+
+CREATE OR REPLACE FUNCTION create_channel(my_channel_id varchar(45)) RETURNS int AS $$
+DECLARE
+	channel_cnt smallint;
+	partition_cnt smallint;
+	my_channel_i_id int;
+	partition_name text;
+BEGIN
+	RAISE NOTICE 'Adding channel %', my_channel_id;
+	select count(channel_i_id) from channels_settings into channel_cnt where channel_id = my_channel_id;
+	RAISE NOTICE 'We got % of this channel', channel_cnt;
+	IF channel_cnt = 1::smallint THEN
+		select channel_i_id from channels_settings into my_channel_i_id where channel_id = my_channel_id limit 1;
+		RAISE NOTICE 'This channel i_id is %', my_channel_i_id;
+	ELSE
+		insert into channels_settings values(my_channel_id) RETURNING channel_i_id into my_channel_i_id;
+	END IF;
+
+	select ('peers_v2_p_' || my_channel_i_id) as p_name into partition_name;
+	RAISE NOTICE 'Part name is %', partition_name;
+	select count(table_name) into partition_cnt FROM information_schema.tables WHERE table_name = partition_name;
+	RAISE NOTICE 'We got % this partition', partition_cnt;
+	IF partition_cnt <> 1 THEN
+		RAISE NOTICE 'Creating partition %', partition_name;
+		execute 'CREATE TABLE ' || partition_name || ' partition of peers_v2(
+			primary key (conn_id,channel_id))
+			for values in (' || my_channel_i_id || ')';
+		--execute 'ALTER TABLE ' || partition_name || ' OWNER to p2p';
+		--execute 'CREATE INDEX ' || partition_name || '_conn_chann_ip ON ' || partition_name || ' (conn_id,channel_id,ip)';
+	END IF;
+	RETURN my_channel_i_id;
+END
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION insert_new_peer(my_conn_id varchar(45),my_channel_id varchar(45), my_ip inet, my_gg_id varchar(45) default NULL) RETURNS void AS $$
+DECLARE
+	channel_i_id int;
+BEGIN
+	select create_channel(my_channel_id) into channel_i_id;
+	RAISE NOTICE 'Creating channel returned: %', channel_i_id;
+	insert into peers_v2 values(my_conn_id,channel_i_id,my_gg_id,my_ip);
+END
+$$ LANGUAGE plpgsql;
+
+
 CREATE OR REPLACE FUNCTION genereate_peer_list(my_conn_id varchar(45), my_channel_id varchar(45),required_peers_num smallint) RETURNS TABLE(conn_id varchar(45), type smallint) AS $$
 BEGIN
 	-- Создаем временную таблицу для исключения уже добавленных пиров
